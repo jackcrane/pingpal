@@ -1,0 +1,24 @@
+{
+  "name": "pingpal",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build_db": "npx prisma generate",
+    "start_ui": "cd ui && npm run dev"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "prisma": "4.16.1"
+  },
+  "dependencies": {
+    "@prisma/client": "4.16.1",
+    "express": "^4.19.2",
+    "express-file-routing": "^3.0.3",
+    "node-fetch": "^3.3.2"
+  }
+}

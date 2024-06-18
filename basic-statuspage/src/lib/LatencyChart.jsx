@@ -35,27 +35,32 @@ export const LatencyChart = ({ data, serviceId }) => {
     }, 1000);
   }, [serviceId]);
 
+  const handleBoxClick = (event, data) => {
+    console.log("Box clicked:", data);
+    // Add your custom logic here
+  };
+
   return (
     <VictoryGroup
       scale={{ y: "sqrt" }}
-      height={200}
+      height={600}
       width={width}
       standalone={true}
-      padding={1}
+      padding={4}
       theme={{
         ...VictoryTheme.material,
         boxplot: {
           style: {
-            min: { stroke: theme.success, opacity: 0.35 },
-            max: { stroke: theme.danger, opacity: 0.35 },
-            q1: { fill: theme.warning, opacity: 0.35 },
-            q3: { fill: theme.badnews, opacity: 0.35 },
-            median: { fill: theme.warning, opacity: 0.35 },
-            minLabels: { fill: "tomato" },
-            maxLabels: { fill: "tomato" },
-            q1Labels: { fill: "tomato" },
-            q3Labels: { fill: "tomato" },
-            medianLabels: { fill: "tomato" },
+            min: { stroke: theme.success, opacity: 0.8, strokeWidth: 3 },
+            max: { stroke: theme.danger, opacity: 0.8, strokeWidth: 3 },
+            q1: { fill: theme.okaynews, opacity: 0.8, strokeWidth: 3 },
+            q3: { fill: theme.badnews, opacity: 0.8, strokeWidth: 3 },
+            median: {
+              fill: theme.warning,
+              stroke: theme.warning,
+              opacity: 0.8,
+              strokeWidth: 5,
+            },
           },
         },
       }}
@@ -63,12 +68,24 @@ export const LatencyChart = ({ data, serviceId }) => {
       <VictoryBoxPlot
         labelComponent={<VictoryTooltip />}
         width={width}
-        height={200}
+        height={400}
         data={_data}
-        boxWidth={2}
+        boxWidth={8}
+        strokeWidth={2}
         domain={{ y: [10, 2000] }}
         standalone={true}
         groupComponent={<CanvasGroup />}
+        events={[
+          {
+            target: "data",
+            eventHandlers: {
+              onClick: (event, props) => {
+                handleBoxClick(event, props.datum);
+                return null; // Returning null means no visual changes on click
+              },
+            },
+          },
+        ]}
       />
       <VictoryLine
         data={_data.map((d) => ({ x: d.x, y: d.y[1] }))}

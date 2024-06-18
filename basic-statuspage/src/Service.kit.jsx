@@ -1,25 +1,19 @@
-import styled from "styled-components";
+import styled, { useTheme } from "styled-components";
 import React from "react";
+import { Link } from "react-router-dom";
+import { ArrowCircleDown, ArrowCircleUp } from "@phosphor-icons/react";
+import { Column } from "./kit";
 
-const colors = [
-  "#ffadad",
-  "#ffd6a5",
-  "#fdffb6",
-  "#caffbf",
-  "#9bf6ff",
-  "#a0c4ff",
-  "#bdb2ff",
-  "#ffc6ff",
-];
-const randomColor = () => colors[Math.floor(Math.random() * colors.length)];
+export const Container = ({ id, children, fullscreen }) =>
+  fullscreen ? (
+    <_FullscreenContainer id={id}>{children}</_FullscreenContainer>
+  ) : (
+    <_Link to={`${id}`}>
+      <_Container id={id}>{children}</_Container>
+    </_Link>
+  );
 
-export const Container = ({ id, children }) => (
-  <Link href={`#${id}`}>
-    <_Container id={id}>{children}</_Container>
-  </Link>
-);
-
-const Link = styled.a`
+const _Link = styled(Link)`
   text-decoration: none;
   color: inherit;
 `;
@@ -48,6 +42,15 @@ const _Container = styled.div`
   @media screen and (max-width: 700px) {
     width: calc(100% - 20px);
   }
+`;
+
+const _FullscreenContainer = styled.div`
+  box-sizing: border-box;
+  position: relative;
+  min-height: 600px;
+  overflow: hidden;
+  width: 100%;
+  display: inline-block;
 `;
 
 const BlurBlob = styled.div`
@@ -83,11 +86,20 @@ export const PillRow = styled.div`
 `;
 
 // Map values from [0, 100] to [10, 30]
-const mapUptimeToSize = (uptime) => (uptime / 100) * 20 + 3;
+const mapUptimeToSize = (uptime, fullscreen) =>
+  fullscreen ? (uptime / 100) * 50 + 3 : (uptime / 100) * 20 + 3;
 
 export const StatusPill = styled.div`
-  height: ${(props) => mapUptimeToSize(props.uptime)}px;
-  width: 2px;
+  position: relative;
+  height: ${(props) => mapUptimeToSize(props.uptime, props.fullscreen)}px;
+  /* width: 2px; */
+  width: ${(props) => (props.fullscreen ? "8px" : "2px")};
+  @media screen and (max-width: 1300px) {
+    width: ${(props) => (props.fullscreen ? "6px" : "2px")};
+  }
+  @media screen and (max-width: 1100px) {
+    width: ${(props) => (props.fullscreen ? "4px" : "2px")};
+  }
   border-radius: 15px;
   background: ${(props) =>
     props.uptime > 97
@@ -97,4 +109,121 @@ export const StatusPill = styled.div`
       : props.uptime > 10
       ? props.theme.badnews
       : props.theme.danger};
+`;
+
+export const PillHoverHost = styled.div`
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1000px;
+  background: ${(props) =>
+    props.hovered ? "rgba(255, 255, 255, 0.2)" : "rgba(255, 255, 255, 0)"};
+  border-width: 1px;
+  border-style: solid;
+  border-bottom: none;
+  border-color: ${(props) =>
+    props.hovered ? "rgba(255, 255, 255, 0.4)" : "rgba(255, 255, 255, 0)"};
+  /* transition: background 0.2s, border-color 0.2s; */
+`;
+
+export const NoOverflow = styled.div`
+  overflow: hidden;
+`;
+
+export const Red = styled.span`
+  color: ${({ theme }) => theme.danger};
+`;
+
+export const Green = styled.span`
+  color: ${({ theme }) => theme.success};
+`;
+
+export const Blue = styled.span`
+  color: ${({ theme }) => theme.blue};
+`;
+
+export const ValueBlock = styled.div`
+  display: inline-block;
+  width: 80px;
+  text-align: right;
+`;
+
+export const UpTrend = () => {
+  const theme = useTheme();
+  return <ArrowCircleUp color={theme.danger} size={16} />;
+};
+
+export const DownTrend = () => {
+  const theme = useTheme();
+  return <ArrowCircleDown color={theme.success} size={16} />;
+};
+
+export const S = styled.span`
+  font-size: 0.8rem;
+`;
+
+export const BackToWorkspace = styled(Link)`
+  text-decoration: none;
+  color: ${({ theme }) => theme.text};
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 5px;
+  padding: 5px;
+  border-radius: 5px;
+  background-color: ${({ theme }) => theme.hover};
+  width: 200px;
+  border: 1px solid ${({ theme }) => theme.border};
+  opacity: 0.8;
+  &:hover {
+    opacity: 1;
+  }
+  transition: opacity 0.2s;
+`;
+
+export const FailureLink = styled(Link)`
+  text-decoration-color: inherit;
+  font-size: 1rem;
+  color: ${({ theme }) => theme.subtext};
+  &:hover {
+    color: ${({ theme }) => theme.text};
+  }
+`;
+
+export const Ul = styled.ul`
+  padding: 0;
+  padding-left: 1rem;
+  margin: 0;
+`;
+
+export const Li = styled.li``;
+
+export const ServicePageContainer = styled.div`
+  display: flex;
+  flex-direction: row;
+  @media screen and (max-width: 900px) {
+    flex-direction: column;
+  }
+`;
+
+export const GraphsContainer = styled(Column)`
+  width: ${(props) => (props.fullscreen ? "70%" : "100%")};
+  @media screen and (max-width: 900px) {
+    width: 100%;
+  }
+  margin-bottom: ${(props) => (props.fullscreen ? "200px" : "0")};
+`;
+
+export const InspectorContainer = styled.div`
+  width: 30%;
+  @media screen and (max-width: 900px) {
+    width: 100%;
+  }
+  padding-right: 2px;
+  padding-left: 10px;
+
+  height: 100%;
+  overflow-y: auto;
 `;

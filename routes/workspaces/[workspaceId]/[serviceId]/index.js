@@ -107,7 +107,7 @@ export const get = async (req, res) => {
     TimeBuckets AS (
       SELECT
         *,
-        NTILE(${bucketCountInt}) OVER (ORDER BY timestamp DESC) AS bucket
+        NTILE(${bucketCountInt}) OVER (ORDER BY timestamp ASC) AS bucket
       FROM
         CombinedData
     ),
@@ -120,7 +120,9 @@ export const get = async (req, res) => {
         GROUP_CONCAT(CASE WHEN status = 'failure' THEN CONCAT(id, '$', timestamp) END SEPARATOR ',') AS failure_details,
         AVG(latency) AS avg_latency,
         MAX(latency) AS max_latency,
-        MIN(latency) AS min_latency
+        MIN(latency) AS min_latency,
+        MIN(timestamp) AS starting_time,
+        MAX(timestamp) AS ending_time
       FROM
         TimeBuckets
       GROUP BY
@@ -172,7 +174,9 @@ export const get = async (req, res) => {
       bq.median_latency,
       bq.q1_latency,
       bq.q3_latency,
-      bs.failure_details
+      bs.failure_details,
+      bs.starting_time,
+      bs.ending_time
     FROM
       BucketSummary bs
     JOIN
@@ -191,6 +195,28 @@ export const get = async (req, res) => {
     service: {
       id: service.id,
       name: service.name,
+    },
+    averaged_data: {
+      avg_avg_latency:
+        points.reduce((acc, point) => acc + parseFloat(point.avg_latency), 0) /
+        points.length,
+      avg_max_latency:
+        points.reduce((acc, point) => acc + parseFloat(point.max_latency), 0) /
+        points.length,
+      avg_min_latency:
+        points.reduce((acc, point) => acc + parseFloat(point.min_latency), 0) /
+        points.length,
+      avg_median_latency:
+        points.reduce(
+          (acc, point) => acc + parseFloat(point.median_latency),
+          0
+        ) / points.length,
+      avg_q1_latency:
+        points.reduce((acc, point) => acc + parseFloat(point.q1_latency), 0) /
+        points.length,
+      avg_q3_latency:
+        points.reduce((acc, point) => acc + parseFloat(point.q3_latency), 0) /
+        points.length,
     },
     data: points.map((point) => {
       return {

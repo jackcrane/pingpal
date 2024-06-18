@@ -28,6 +28,8 @@ model Workspace {
   users User[]
   services Service[]
 
+  subdomain String? @unique
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

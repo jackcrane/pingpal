@@ -1,0 +1,45 @@
+{
+  "name": "basic-statuspage",
+  "version": "0.1.0",
+  "description": "",
+  "license": "MIT",
+  "scripts": {
+    "start": "vite",
+    "preview": "vite preview",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "@nivo/boxplot": "^0.87.0",
+    "@uidotdev/usehooks": "^2.4.1",
+    "@visx/axis": "^3.10.1",
+    "@visx/gradient": "^3.3.0",
+    "@visx/group": "^3.3.0",
+    "@visx/mock-data": "^3.3.0",
+    "@visx/pattern": "^3.3.0",
+    "@visx/point": "^3.3.0",
+    "@visx/responsive": "^3.10.2",
+    "@visx/scale": "^3.5.0",
+    "@visx/shape": "^3.5.0",
+    "@visx/stats": "^3.5.0",
+    "@visx/tooltip": "^3.3.0",
+    "chart.js": "^4.4.3",
+    "chartjs-chart-box-and-violin-plot": "^4.0.0",
+    "d3": "^7.9.0",
+    "react": "^18.2.0",
+    "react-chartjs-2": "^5.2.0",
+    "react-dom": "^18.2.0",
+    "react-use": "^17.5.0",
+    "styled-components": "^6.1.11",
+    "victory": "^37.0.2",
+    "victory-canvas": "^37.0.2"
+  },
+  "devDependencies": {
+    "babel-preset-nano-react-app": "^0.1.0",
+    "vite": "^5.2.6"
+  },
+  "babel": {
+    "presets": [
+      "nano-react-app"
+    ]
+  }
+}

@@ -1,17 +1,24 @@
 import { prisma } from "../../../lib/prisma.js";
 
 export const get = async (req, res) => {
-  const services = await prisma.service.findMany({
+  const workspace = await prisma.workspace.findUnique({
     where: {
-      workspaceId: req.params.workspaceId,
+      id: req.params.workspaceId,
+    },
+    include: {
+      services: {
+        select: {
+          id: true,
+          name: true,
+          lastCheck: true,
+        },
+      },
     },
   });
-  return res.json(
-    services.map((service) => {
-      return {
-        ...service,
-        url: `/workspaces/${service.workspaceId}/${service.id}`,
-      };
-    })
-  );
+  if (!workspace) {
+    return res.status(404).json({
+      error: "Workspace not found",
+    });
+  }
+  return res.json(workspace);
 };

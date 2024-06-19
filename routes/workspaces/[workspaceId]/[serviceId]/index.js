@@ -6,6 +6,7 @@ BigInt.prototype.toJSON = function () {
 };
 
 export const get = async (req, res) => {
+  const startTime = Date.now();
   const { interval, bucketCount } = req.query;
   const allowedIntervals = ["30m", "1h", "6h", "12h", "1d", "7d", "30d", "90d"];
   if (!allowedIntervals.includes(interval)) {
@@ -53,6 +54,8 @@ export const get = async (req, res) => {
     });
   }
 
+  const spinUpTime = Date.now() - startTime;
+
   const service = await prisma.service.findUnique({
     where: {
       id: req.params.serviceId,
@@ -68,6 +71,7 @@ export const get = async (req, res) => {
       error: "Forbidden",
     });
   }
+  const serviceVerificationTime = Date.now() - startTime - spinUpTime;
 
   const overallQuery = Prisma.sql`
     SELECT
@@ -79,6 +83,8 @@ export const get = async (req, res) => {
   `;
   const success_query = await prisma.$queryRaw(overallQuery);
   const success_percentage = parseFloat(success_query[0].success_percentage);
+  const overallQueryTime =
+    Date.now() - startTime - spinUpTime - serviceVerificationTime;
 
   const query = `
     WITH CombinedData AS (
@@ -185,13 +191,25 @@ export const get = async (req, res) => {
       bs.bucket;
   `;
 
-  writeFileSync("query.sql", query, "utf-8");
-
   const points = await prisma.$queryRawUnsafe(query);
+  const mainQueryTime =
+    Date.now() -
+    startTime -
+    spinUpTime -
+    serviceVerificationTime -
+    overallQueryTime;
+
   res.json({
     length: points.length,
     offset: 0,
     success_percentage,
+    timing: {
+      spin_up: spinUpTime,
+      service_verification: serviceVerificationTime,
+      overall_query: overallQueryTime,
+      main_query: mainQueryTime,
+      total: Date.now() - startTime,
+    },
     service: {
       id: service.id,
       name: service.name,

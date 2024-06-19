@@ -10,7 +10,7 @@ RUN npm install
 
 COPY . .
 
-ENV DATABASE_URL="mysql://apps:Guro6297@db.jackcrane.rocks:3306/pingpal"
+ENV DATABASE_URL="mysql://apps:Guro6297@db.jackcrane.rocks:3306/pingpal&connection_limit=50"
 RUN yarn build_db
 RUN yarn build_basicstatuspage
 

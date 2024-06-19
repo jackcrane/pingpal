@@ -1,6 +1,6 @@
 {
   "name": "pingpal",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "",
   "main": "index.js",
   "type": "module",
@@ -9,7 +9,7 @@
     "build_db": "npx prisma generate",
     "start_ui": "cd ui && npm run dev",
     "start": "node serve.js",
-    "build_basicstatuspage": "cd basic-statuspage && npm run build",
+    "build_basicstatuspage": "cd basic-statuspage && yarn && npm run build",
     "dev:fe": "cd basic-statuspage && yarn start"
   },
   "keywords": [],

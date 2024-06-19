@@ -17,6 +17,7 @@ model User {
   password String
   role Role @default(OWNER)
   workspaces Workspace[]
+  comments Comment[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -56,6 +57,8 @@ model Service {
   hits Hit[]
   failures Failure[]
 
+  outages Outage[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -86,7 +89,44 @@ model Failure {
   serviceId String
   service Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
 
+  outageId String?
+  outage Outage? @relation(fields: [outageId], references: [id], onDelete: Cascade)
+
   createdAt DateTime @default(now())
+}
+
+model Outage {
+  id String @id @default(uuid())
+  status OutageStatus @default(OPEN)
+
+  serviceId String
+  service Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  failures Failure[]
+
+  comments Comment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Comment {
+  id String @id @default(uuid())
+  text String @db.Text
+
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  outageId String
+  outage Outage @relation(fields: [outageId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum OutageStatus {
+  OPEN
+  CLOSED
 }
 
 enum Role {

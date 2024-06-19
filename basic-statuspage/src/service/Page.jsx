@@ -7,6 +7,7 @@ import useService from "../hooks/useService";
 import useSubdomain from "../hooks/useSubdomain";
 import { BackToWorkspace } from "./Kit";
 import { ArrowCircleLeft } from "@phosphor-icons/react";
+import { useDocumentTitle } from "@uidotdev/usehooks";
 
 export default ({}) => {
   const { serviceId } = useParams();
@@ -17,6 +18,8 @@ export default ({}) => {
     refetch,
   } = useWorkspace(workspaceId);
   const { loading, service } = useService(serviceId);
+
+  useDocumentTitle(`${workspace?.name} | ${service?.service?.name} | PingPal`);
 
   useEffect(() => {
     refetch();

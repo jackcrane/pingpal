@@ -12,6 +12,7 @@ COPY . .
 
 ENV DATABASE_URL="mysql://apps:Guro6297@db.jackcrane.rocks:3306/pingpal"
 RUN yarn build_db
+RUN yarn build_basicstatuspage
 
 EXPOSE 2000
 CMD [ "node", "serve.js" ]

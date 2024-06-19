@@ -1,6 +1,6 @@
 import { FailureReason, OutageStatus, PrismaClient } from "@prisma/client";
-import fetch from "node-fetch";
 const prisma = new PrismaClient();
+import fetch from "node-fetch";
 
 async function logFailure({
   service,

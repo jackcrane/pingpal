@@ -2,7 +2,7 @@ import styled, { useTheme } from "styled-components";
 import React from "react";
 import { Link } from "react-router-dom";
 import { ArrowCircleDown, ArrowCircleUp } from "@phosphor-icons/react";
-import { Column } from "./kit";
+import { Column } from "../kit";
 
 export const Container = ({ id, children, fullscreen }) =>
   fullscreen ? (
@@ -102,7 +102,7 @@ export const StatusPill = styled.div`
   }
   border-radius: 15px;
   background: ${(props) =>
-    props.uptime > 97
+    props.uptime > 99
       ? props.theme.success
       : props.uptime > 70
       ? props.theme.warning
@@ -212,6 +212,7 @@ export const GraphsContainer = styled(Column)`
   width: ${(props) => (props.fullscreen ? "70%" : "100%")};
   @media screen and (max-width: 900px) {
     width: 100%;
+    margin-bottom: 20px;
   }
   margin-bottom: ${(props) => (props.fullscreen ? "200px" : "0")};
 `;
@@ -220,10 +221,41 @@ export const InspectorContainer = styled.div`
   width: 30%;
   @media screen and (max-width: 900px) {
     width: 100%;
+    padding-right: 10px;
+    padding-left: 0px;
   }
   padding-right: 2px;
   padding-left: 10px;
 
   height: 100%;
   overflow-y: auto;
+`;
+
+export const BucketSelectorButton = styled.button`
+  height: 32px;
+  width: 32px;
+  background-color: ${({ theme }) => theme.hover};
+  border: 1px solid ${({ theme }) => theme.border};
+  opacity: 0.8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.2s;
+  border-radius: 5px;
+  &:hover {
+    opacity: 1;
+    transform: translateX(${(props) => (props.left ? "-2px" : "2px")});
+  }
+`;
+
+export const Kbd = styled.kbd`
+  background-color: ${({ theme }) => theme.hover};
+  border: 1px solid ${({ theme }) => theme.border};
+  border-radius: 5px;
+  padding: 2px;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 5px;
 `;

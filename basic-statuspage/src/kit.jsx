@@ -11,6 +11,9 @@ export const Container = styled.div`
 
 export const H1 = styled.h1`
   font-size: 6rem;
+  @media screen and (max-width: 900px) {
+    font-size: 4rem;
+  }
   margin: 0;
   letter-spacing: -5px;
   color: ${(props) => props.theme.text};

@@ -1,7 +1,7 @@
 import React from "react";
 import { Container, H1, ServiceContainer, Spacer } from "./kit";
 import useWorkspace from "./hooks/useWorkspace";
-import { Service } from "./Service";
+import { Service } from "./service/Index";
 
 export default ({ workspaceId }) => {
   const { loading, workspace } = useWorkspace(workspaceId);

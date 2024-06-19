@@ -9,6 +9,7 @@ const app = express();
 
 app.use(cors());
 
+app.use(express.static("basic-statuspage/dist"));
 await createRouter(app); // as wrapper function
 
 app.listen(2000, () => {

@@ -1,11 +1,11 @@
 import React, { useEffect } from "react";
-import { Container, H1, H2, ServiceContainer, Spacer } from "./kit";
-import useWorkspace from "./hooks/useWorkspace";
-import { Service } from "./Service";
+import { Container, H1, H2, ServiceContainer, Spacer } from "../kit";
+import useWorkspace from "../hooks/useWorkspace";
+import { Service } from "./Index";
 import { Link, useParams } from "react-router-dom";
-import useService from "./hooks/useService";
-import useSubdomain from "./hooks/useSubdomain";
-import { BackToWorkspace } from "./Service.kit";
+import useService from "../hooks/useService";
+import useSubdomain from "../hooks/useSubdomain";
+import { BackToWorkspace } from "./Kit";
 import { ArrowCircleLeft } from "@phosphor-icons/react";
 
 export default ({}) => {

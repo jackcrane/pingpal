@@ -8,7 +8,9 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build_db": "npx prisma generate",
     "start_ui": "cd ui && npm run dev",
-    "start": "node serve.js"
+    "start": "node serve.js",
+    "build_basicstatuspage": "cd basic-statuspage && npm run build",
+    "dev:fe": "cd basic-statuspage && yarn start"
   },
   "keywords": [],
   "author": "",

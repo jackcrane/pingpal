@@ -1,117 +1,25 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import {
   Blue,
-  Container,
   DownTrend,
   FailureLink,
   Green,
+  Kbd,
   Li,
-  NoOverflow,
-  PillHoverHost,
-  PillRow,
   Red,
-  ServicePageContainer,
   S,
-  StatusPill,
-  Subtitle,
-  Title,
-  TitleSkeleton,
   Ul,
   UpTrend,
   ValueBlock,
-  GraphsContainer,
-  InspectorContainer,
-} from "./Service.kit";
-import useService from "./hooks/useService";
-import { Between, Column, H3, H4, P, Relative, Row, Spacer } from "./kit";
-import { LatencyChart } from "./lib/LatencyChart";
+} from "./Kit";
+import { Between, Column, H4, P, Row } from "../kit";
 import moment from "moment";
+import { ArrowFatUp, Smiley, WarningDiamond } from "@phosphor-icons/react";
 import { useTheme } from "styled-components";
-import { Smiley, SmileyMelting } from "@phosphor-icons/react";
 
-export const Service = ({ serviceId, fullscreen = false }) => {
-  let globalTimeout = null;
-  const { loading, service } = useService(serviceId);
-  const [hovBucket, setHovBucket] = useState(null);
-  const [lockedBucket, setLockedBucket] = useState(null);
-
+export const Inspect = ({ bucket, averages }) => {
   const theme = useTheme();
 
-  if (loading)
-    return (
-      <Container fullscreen={fullscreen}>
-        <TitleSkeleton />
-      </Container>
-    );
-
-  return (
-    <Container id={serviceId} fullscreen={fullscreen}>
-      <ServicePageContainer
-        style={{
-          alignItems: "flex-start",
-          gap: 10,
-          borderTopWidth: 1,
-          borderBottomWidth: 1,
-          borderTopStyle: fullscreen ? "solid" : "none",
-          borderBottomStyle: fullscreen ? "solid" : "none",
-          borderTopColor: theme.border,
-          borderBottomColor: theme.border,
-          justifyContent: "space-between",
-        }}
-      >
-        <GraphsContainer fullscreen={fullscreen}>
-          <Between>
-            <Title>{service.service.name}</Title>
-            <Subtitle>{service.success_percentage.toFixed(2)}%</Subtitle>
-          </Between>
-          <Spacer />
-          <NoOverflow>
-            {fullscreen ? (
-              <LatencyChart data={service.data} serviceId={serviceId} />
-            ) : (
-              <></>
-            )}
-            <PillRow>
-              {service.data.map((d) => (
-                <StatusPill
-                  key={d.bucket}
-                  uptime={d.success_percentage}
-                  fullscreen={fullscreen}
-                >
-                  {fullscreen ? (
-                    <PillHoverHostController
-                      bucket={d}
-                      setActiveBucket={(d) => setHovBucket(d)}
-                      setLockedBucket={(d) => setLockedBucket(d)}
-                      lockedBucket={lockedBucket}
-                      activeBucket={hovBucket}
-                    />
-                  ) : null}
-                </StatusPill>
-              ))}
-            </PillRow>
-          </NoOverflow>
-        </GraphsContainer>
-        {fullscreen && (
-          <InspectorContainer>
-            <Spacer height="20px" />
-            <H3>Bucket Statistics</H3>
-            <Spacer height="10px" />
-            {lockedBucket ? (
-              <Inspect bucket={lockedBucket} averages={service.averaged_data} />
-            ) : hovBucket ? (
-              <Inspect bucket={hovBucket} averages={service.averaged_data} />
-            ) : (
-              <p>Hover over a spot on the graph for more information</p>
-            )}
-          </InspectorContainer>
-        )}
-      </ServicePageContainer>
-    </Container>
-  );
-};
-
-const Inspect = ({ bucket, averages }) => {
   return (
     <Column gap={"8px"}>
       <H4>Bucket info</H4>
@@ -262,42 +170,5 @@ const Inspect = ({ bucket, averages }) => {
         </Row>
       )}
     </Column>
-  );
-};
-
-const PillHoverHostController = ({
-  setActiveBucket,
-  setLockedBucket,
-  bucket,
-  lockedBucket,
-}) => {
-  const [hovered, setHovered] = useState(false);
-
-  const handleHover = (status) => {
-    if (!lockedBucket) {
-      setHovered(status);
-      setActiveBucket(status ? bucket : null);
-    }
-  };
-
-  const handleClick = () => {
-    if (lockedBucket) {
-      setLockedBucket(null);
-    } else {
-      setLockedBucket(bucket);
-    }
-  };
-
-  return (
-    <PillHoverHost
-      onMouseEnter={() => handleHover(true)}
-      onMouseLeave={() => handleHover(false)}
-      onClick={handleClick}
-      hovered={
-        hovered || (lockedBucket && lockedBucket.bucket === bucket.bucket)
-      }
-    >
-      {bucket.bucket}
-    </PillHoverHost>
   );
 };

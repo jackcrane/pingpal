@@ -8,6 +8,7 @@ import {
   VictoryTheme,
   VictoryTooltip,
 } from "victory";
+import { useWindowSize } from "@uidotdev/usehooks";
 
 // min, median, max, q1, q3
 
@@ -29,6 +30,8 @@ export const LatencyChart = ({ data, serviceId }) => {
   const [width, setWidth] = useState(0);
   const theme = useTheme();
 
+  const { width: windowWidth } = useWindowSize();
+
   useEffect(() => {
     setTimeout(() => {
       setWidth(document.getElementById(serviceId)?.offsetWidth);
@@ -43,7 +46,7 @@ export const LatencyChart = ({ data, serviceId }) => {
   return (
     <VictoryGroup
       scale={{ y: "sqrt" }}
-      height={600}
+      height={windowWidth > 900 ? 600 : 200}
       width={width}
       standalone={true}
       padding={4}

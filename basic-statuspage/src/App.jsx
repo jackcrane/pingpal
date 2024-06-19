@@ -1,10 +1,10 @@
 import React from "react";
 import { Container, H1, Spacer } from "./kit";
-import { Service } from "./Service";
+import { Service } from "./service/Index";
 import Workspace from "./Workspace";
 import { ThemeProvider } from "styled-components";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import ServicePage from "./ServicePage";
+import ServicePage from "./service/Page";
 import useSubdomain from "./hooks/useSubdomain";
 
 export default () => {

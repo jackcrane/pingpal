@@ -1,5 +1,5 @@
 import React from "react";
-import { Container, H1, Spacer } from "./kit";
+import { Container, H1, Loading, Spacer } from "./kit";
 import { Service } from "./service/Index";
 import Workspace from "./Workspace";
 import { ThemeProvider } from "styled-components";
@@ -21,7 +21,7 @@ export default () => {
     },
   ]);
 
-  if (loading) return <Container>Loading...</Container>;
+  if (loading) return <Loading />;
   return (
     <ThemeProvider
       theme={{

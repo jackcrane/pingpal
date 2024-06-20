@@ -3,6 +3,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { ArrowCircleDown, ArrowCircleUp } from "@phosphor-icons/react";
 import { Column } from "../kit";
+import Color from "color";
 
 export const Container = ({ id, children, fullscreen }) =>
   fullscreen ? (
@@ -258,4 +259,20 @@ export const Kbd = styled.kbd`
   display: flex;
   align-items: center;
   gap: 5px;
+`;
+
+const Card = styled.div`
+  border-radius: 5px;
+  padding: 10px;
+  margin-bottom: 10px;
+`;
+
+export const OutageCard = styled(Card)`
+  background-color: ${({ theme }) => Color(theme.danger).alpha(0.1).string()};
+  border: 1px solid ${({ theme }) => theme.danger};
+`;
+
+export const WorkingCard = styled(Card)`
+  background-color: ${({ theme }) => Color(theme.success).alpha(0.1).string()};
+  border: 1px solid ${({ theme }) => theme.success};
 `;

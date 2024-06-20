@@ -12,9 +12,11 @@ import {
   InspectorContainer,
   BucketSelectorButton,
   Kbd,
+  OutageCard,
+  WorkingCard,
 } from "./Kit";
 import useService from "../hooks/useService";
-import { Between, H3, Relative, Row, Spacer } from "../kit";
+import { Between, Column, H3, H4, P, Relative, Row, Spacer } from "../kit";
 import { LatencyChart } from "../lib/LatencyChart";
 import { useTheme } from "styled-components";
 import {
@@ -24,14 +26,19 @@ import {
   ArrowSquareLeft,
   ArrowSquareRight,
   SmileyMelting,
+  ThumbsUp,
   WarningDiamond,
 } from "@phosphor-icons/react";
 import { Inspect } from "./Inspect";
 import { PillHoverHostController } from "./PillHoverHostController";
+import useServiceOutages from "../hooks/useServiceOutages";
+import moment from "moment";
+import Outage from "./outage/Index";
 
 export const Service = ({ serviceId, fullscreen = false }) => {
   let globalTimeout = null;
   const { loading, service } = useService(serviceId);
+  const { currentlyActive, outages } = useServiceOutages(serviceId);
 
   const [hovBucket, setHovBucket] = useState(null);
   const [currentBucketIndex, setCurrentBucketIndex] = useState(0);
@@ -122,6 +129,72 @@ export const Service = ({ serviceId, fullscreen = false }) => {
             </PillRow>
             <Spacer />
           </NoOverflow>
+
+          {fullscreen ? (
+            <>
+              <Spacer />
+              {currentlyActive ? (
+                <OutageCard>
+                  <Row style={{ gap: 10 }}>
+                    <WarningDiamond
+                      size={32}
+                      color={theme.danger}
+                      weight="bold"
+                    />
+                    <Column>
+                      <H4>Current outage</H4>
+                      <P>
+                        {service.service.name} is currently experiencing an
+                        outage, starting{" "}
+                        {moment(outages[0].createdAt).fromNow()}. The team has
+                        been notified!
+                      </P>
+                    </Column>
+                  </Row>
+                </OutageCard>
+              ) : (
+                <WorkingCard>
+                  <Row style={{ gap: 10 }}>
+                    <ThumbsUp size={32} color={theme.success} weight="bold" />
+                    <Column>
+                      <H4>Everything is working fine</H4>
+                      <P>
+                        {service.service.name} is working fine at the moment.
+                      </P>
+                    </Column>
+                  </Row>
+                </WorkingCard>
+              )}
+              <Spacer />
+              <H3>Outages</H3>
+              <Spacer />
+              {outages.map((outage) => (
+                <Outage
+                  key={outage.id}
+                  outageId={outage.id}
+                  serviceId={serviceId}
+                  workspaceId={workspaceId}
+                />
+              ))}
+            </>
+          ) : (
+            <>
+              {currentlyActive ? (
+                <OutageCard style={{ padding: 2, fontSize: "0.8rem" }}>
+                  <Row style={{ gap: 6 }}>
+                    <WarningDiamond
+                      size={16}
+                      color={theme.danger}
+                      weight="bold"
+                    />
+                    <P>Outage since {moment(outages[0].createdAt).fromNow()}</P>
+                  </Row>
+                </OutageCard>
+              ) : (
+                <></>
+              )}
+            </>
+          )}
         </GraphsContainer>
         {fullscreen && (
           <InspectorContainer>

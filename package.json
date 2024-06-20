@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@prisma/client": "4.16.1",
+    "color": "^4.2.3",
     "cors": "^2.8.5",
     "express": "^4.19.2",
     "express-file-routing": "^3.0.3",

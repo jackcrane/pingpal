@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { Container, H1, H2, ServiceContainer, Spacer } from "../kit";
+import { Container, H1, H2, Loading, ServiceContainer, Spacer } from "../kit";
 import useWorkspace from "../hooks/useWorkspace";
 import { Service } from "./Index";
 import { Link, useParams } from "react-router-dom";
@@ -22,10 +22,11 @@ export default ({}) => {
   useDocumentTitle(`${workspace?.name} | ${service?.service?.name} | PingPal`);
 
   useEffect(() => {
+    window.workspaceId = workspaceId;
     refetch();
   }, [workspaceId]);
 
-  if (loading || workspaceLoading) return <Container>Loading...</Container>;
+  if (loading || workspaceLoading) return <Loading />;
 
   return (
     <Container>

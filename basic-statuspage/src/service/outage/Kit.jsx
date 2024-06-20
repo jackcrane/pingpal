@@ -2,6 +2,7 @@ import moment from "moment";
 import styled, { useTheme } from "styled-components";
 import React from "react";
 import { P } from "../../kit";
+import Color from "color";
 
 export const Card = styled.div`
   border-radius: 5px;
@@ -116,4 +117,14 @@ export const Tooltip = ({ text, message }) => {
   );
 };
 
-export const Comment = styled(Card)``;
+export const H5 = styled.h5`
+  font-size: 1rem;
+  margin: 0;
+  color: ${({ theme }) => theme.text};
+`;
+
+export const CommentCard = styled(Card)`
+  border-color: ${({ theme }) => theme.blue};
+  border-left-width: 5px;
+  background-color: ${({ theme }) => Color(theme.blue).alpha(0.1).string()};
+`;

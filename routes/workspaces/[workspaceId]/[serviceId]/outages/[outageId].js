@@ -22,6 +22,18 @@ export const get = async (req, res) => {
               },
             }
           : false,
+      comments:
+        req.query.includeComments && req.query.includeComments === "true"
+          ? {
+              include: {
+                user: {
+                  select: {
+                    name: true,
+                  },
+                },
+              },
+            }
+          : false,
     },
   });
 

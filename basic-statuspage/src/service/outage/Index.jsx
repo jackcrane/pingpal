@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { Between, Column, H4, P } from "../../kit";
+import { Between, Column, H4, P, Spacer } from "../../kit";
 import useOutage from "../../hooks/useOutage";
 import {
   Card,
-  Comment,
   Duration,
   Hr,
   HrHiddenLarge,
@@ -11,6 +10,7 @@ import {
   OutageDetailsContainer,
   Tooltip,
 } from "./Kit";
+import { Comment } from "./Comment";
 import moment from "moment";
 import { Green, Red } from "../Kit";
 
@@ -133,9 +133,23 @@ const Outage = ({ outageId, serviceId }) => {
         </OutageDetail>
         <HrHiddenLarge />
         <OutageDetail>
-          <H4>Comments</H4>
-          {outage.comments || outage.comments?.length > 0 ? (
-            outage.comments?.map((c) => <Comment key={c.id} comment={c} />)
+          <Between>
+            <H4>Official Comments</H4>
+            {outage.comments && outage.comments?.length > 0
+              ? `${outage.comments.length} comment${
+                  outage.comments.length > 1 ? "s" : ""
+                }`
+              : "No comments yet!"}
+          </Between>
+          {outage.comments && outage.comments?.length > 0 ? (
+            <>
+              <Spacer height="5px" />
+              <Column>
+                {outage.comments?.map((c) => (
+                  <Comment key={c.id} comment={c} />
+                ))}
+              </Column>
+            </>
           ) : (
             <>No comments yet</>
           )}

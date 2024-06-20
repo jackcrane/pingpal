@@ -1,7 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { url } from "../lib/url";
 
-const useOutage = ({ serviceId, includeFailures, outageId }) => {
+const useOutage = ({
+  serviceId,
+  includeFailures,
+  outageId,
+  includeComments,
+}) => {
   const [outage, setOutage] = useState(null);
   const [sortedFailures, setSortedFailures] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -18,7 +23,7 @@ const useOutage = ({ serviceId, includeFailures, outageId }) => {
           window.workspaceId
         }/${serviceId}/outages/${outageId}?includeFailures=${
           includeFailures ? "true" : "false"
-        }`
+        }&includeComments=${includeComments ? "true" : "false"}`
       )
     );
     const data = await f.json();

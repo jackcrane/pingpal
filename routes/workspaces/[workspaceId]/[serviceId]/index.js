@@ -83,6 +83,8 @@ export const get = async (req, res) => {
   `;
 
   const success_query = await prisma.$queryRaw(overallQuery);
+  await prisma.$disconnect();
+
   const success_percentage = parseFloat(success_query[0].success_percentage);
   const overallQueryTime =
     Date.now() - startTime - spinUpTime - serviceVerificationTime;
@@ -195,6 +197,8 @@ export const get = async (req, res) => {
   writeFileSync("query.sql", query);
 
   const points = await prisma.$queryRawUnsafe(query);
+  await prisma.$disconnect();
+
   const mainQueryTime =
     Date.now() -
     startTime -

@@ -61,6 +61,7 @@ async function pingService(service) {
   await prisma.$queryRaw`
     UPDATE "Service" SET "lastCheck" = NOW() WHERE id = ${serviceId};
   `;
+  await prisma.$disconnect();
   const startTime = new Date();
   let request;
   try {
@@ -151,6 +152,7 @@ async function main() {
     FROM "Service"
     WHERE AGE(NOW(), "lastCheck") > ("checkInterval" || ' seconds')::INTERVAL;
   `;
+  await prisma.$disconnect();
   for (const service of services) {
     pingService(service);
   }

@@ -41,7 +41,8 @@ const _Container = styled.div`
     width: calc(50% - 20px);
   }
   @media screen and (max-width: 700px) {
-    width: calc(100% - 20px);
+    width: calc(100%);
+    margin: 10px 0;
   }
 `;
 

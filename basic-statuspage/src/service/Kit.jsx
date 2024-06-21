@@ -101,6 +101,12 @@ export const StatusPill = styled.div`
   @media screen and (max-width: 1100px) {
     width: ${(props) => (props.fullscreen ? "4px" : "2px")};
   }
+  @media screen and (max-width: 600px) {
+    width: ${(props) => (props.fullscreen ? "3px" : "2px")};
+  }
+  @media screen and (max-width: 500px) {
+    width: 2px;
+  }
   border-radius: 15px;
   background: ${(props) =>
     props.uptime > 99
@@ -167,15 +173,13 @@ export const S = styled.span`
 export const BackToWorkspace = styled(Link)`
   text-decoration: none;
   color: ${({ theme }) => theme.text};
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  gap: 5px;
   padding: 5px;
   border-radius: 5px;
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 5px;
   background-color: ${({ theme }) => theme.hover};
-  width: 200px;
   border: 1px solid ${({ theme }) => theme.border};
   opacity: 0.8;
   &:hover {

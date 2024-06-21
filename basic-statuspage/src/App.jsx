@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Container, H1, Loading, Spacer } from "./kit";
 import { Service } from "./service/Index";
 import Workspace from "./Workspace";
@@ -6,9 +6,15 @@ import { ThemeProvider } from "styled-components";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import ServicePage from "./service/Page";
 import useSubdomain from "./hooks/useSubdomain";
+import { useFavicon } from "@uidotdev/usehooks";
 
 export default () => {
   const { loading, workspaceId } = useSubdomain();
+  useFavicon("/assets/logo-blue.png");
+
+  useEffect(() => {
+    window.workspaceId = workspaceId;
+  }, [workspaceId]);
 
   const router = createBrowserRouter([
     {

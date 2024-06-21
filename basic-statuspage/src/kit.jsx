@@ -1,6 +1,8 @@
 import styled, { keyframes, useTheme } from "styled-components";
 import React from "react";
 import { CircleNotch, Spinner } from "@phosphor-icons/react";
+import { Link } from "react-router-dom";
+import Color from "color";
 
 export const Container = styled.div`
   display: flex;
@@ -117,8 +119,10 @@ const _LoadingContainer = styled(Container)`
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
-  width: 100%;
+  text-align: center;
+  height: 70vh;
+  width: 80%;
+  margin: auto;
 `;
 
 const rotate = keyframes`
@@ -128,4 +132,32 @@ const rotate = keyframes`
 
 const _LoadingIcon = styled(CircleNotch)`
   animation: ${rotate} 2s linear infinite;
+`;
+
+const _Link = styled(Link)`
+  text-decoration: none;
+  color: ${({ theme }) => theme.text};
+  padding: 5px;
+  border-radius: 5px;
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 5px;
+  background-color: ${({ theme }) => Color(theme.border).alpha(0.2).string()};
+  border: 1px solid ${({ theme }) => theme.border};
+  &:hover {
+    background-color: ${({ theme }) => Color(theme.border).alpha(0.4).string()};
+  }
+  transition: background-color 0.2s;
+`;
+
+export { _Link as Link };
+
+export const TextLink = styled(Link)`
+  text-decoration: underline;
+  color: ${(props) => props.theme.subtext};
+  text-decoration-color: ${(props) => props.theme.subtext};
+  &:hover {
+    color: ${(props) => props.theme.text};
+  }
 `;

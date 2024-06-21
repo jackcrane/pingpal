@@ -3,6 +3,8 @@ import { Container, H1, Loading, ServiceContainer, Spacer } from "./kit";
 import useWorkspace from "./hooks/useWorkspace";
 import { Service } from "./service/Index";
 import { useDocumentTitle } from "@uidotdev/usehooks";
+import { Header } from "./Header";
+import { Footer } from "./Footer";
 
 export default ({ workspaceId }) => {
   const { loading, workspace } = useWorkspace(workspaceId);
@@ -12,6 +14,7 @@ export default ({ workspaceId }) => {
 
   return (
     <Container>
+      <Header />
       <H1>{workspace.name}</H1>
       <Spacer height="50px" />
       <ServiceContainer>
@@ -19,6 +22,7 @@ export default ({ workspaceId }) => {
           <Service key={service.id} serviceId={service.id} />
         ))}
       </ServiceContainer>
+      <Footer />
     </Container>
   );
 };

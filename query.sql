@@ -4,22 +4,24 @@
         id AS id,
         createdAt AS timestamp,
         'success' AS status,
-        latency
+        latency,
+        NULL as outageId
       FROM
         Hit
       WHERE
-        serviceId = 'e1674958-6e4c-4dd6-8a24-d899290c0f9b'
+        serviceId = 'd76df059-cd21-4d70-8500-93553411452d'
         AND createdAt >= NOW() - INTERVAL 30 DAY
       UNION ALL
       SELECT
         id AS id,
         createdAt AS timestamp,
         'failure' AS status,
-        latency
+        latency,
+        outageId
       FROM
         Failure
       WHERE
-        serviceId = 'e1674958-6e4c-4dd6-8a24-d899290c0f9b'
+        serviceId = 'd76df059-cd21-4d70-8500-93553411452d'
         AND createdAt >= NOW() - INTERVAL 30 DAY
     ),
     TimeBuckets AS (
@@ -35,7 +37,7 @@
         COUNT(*) AS total,
         COUNT(CASE WHEN status = 'success' THEN 1 END) AS success_count,
         COUNT(CASE WHEN status = 'failure' THEN 1 END) AS failure_count,
-        GROUP_CONCAT(CASE WHEN status = 'failure' THEN CONCAT(id, '$', timestamp) END SEPARATOR ',') AS failure_details,
+        GROUP_CONCAT(DISTINCT CASE WHEN status = 'failure' THEN CONCAT(outageId, '$', timestamp) END SEPARATOR ',') AS outage_details,
         AVG(latency) AS avg_latency,
         MAX(latency) AS max_latency,
         MIN(latency) AS min_latency,
@@ -92,7 +94,7 @@
       bq.median_latency,
       bq.q1_latency,
       bq.q3_latency,
-      bs.failure_details,
+      bs.outage_details,
       bs.starting_time,
       bs.ending_time
     FROM

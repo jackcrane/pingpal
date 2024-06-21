@@ -34,6 +34,7 @@ import { PillHoverHostController } from "./PillHoverHostController";
 import useServiceOutages from "../hooks/useServiceOutages";
 import moment from "moment";
 import Outage from "./outage/Index";
+import { useFavicon } from "@uidotdev/usehooks";
 
 export const Service = ({ serviceId, fullscreen = false }) => {
   let globalTimeout = null;
@@ -42,6 +43,14 @@ export const Service = ({ serviceId, fullscreen = false }) => {
 
   const [hovBucket, setHovBucket] = useState(null);
   const [currentBucketIndex, setCurrentBucketIndex] = useState(0);
+
+  useFavicon(
+    fullscreen
+      ? currentlyActive
+        ? "/assets/logo-red.png"
+        : "/assets/logo-green.png"
+      : "/assets/logo-blue.png"
+  );
 
   const theme = useTheme();
 

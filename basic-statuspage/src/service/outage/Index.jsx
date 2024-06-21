@@ -128,7 +128,7 @@ const Outage = ({ outageId, serviceId }) => {
           </Between>
           <Between>
             <P>Outage ID</P>
-            <P>{outage.id}</P>
+            <P>{outage.id.split("-")[0]}</P>
           </Between>
         </OutageDetail>
         <HrHiddenLarge />

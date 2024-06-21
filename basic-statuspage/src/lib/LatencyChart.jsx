@@ -43,6 +43,20 @@ export const LatencyChart = ({ data, serviceId }) => {
     // Add your custom logic here
   };
 
+  const getBoxWidth = () => {
+    if (windowWidth > 800) return 8;
+    if (windowWidth > 600) return 6;
+    if (windowWidth > 400) return 4;
+    return 2;
+  };
+
+  const getStrokeWidth = () => {
+    if (windowWidth > 800) return 2;
+    if (windowWidth > 600) return 1.5;
+    if (windowWidth > 400) return 1;
+    return 0.5;
+  };
+
   return (
     <VictoryGroup
       scale={{ y: "sqrt" }}
@@ -73,8 +87,8 @@ export const LatencyChart = ({ data, serviceId }) => {
         width={width}
         height={400}
         data={_data}
-        boxWidth={8}
-        strokeWidth={2}
+        boxWidth={getBoxWidth()}
+        strokeWidth={getStrokeWidth()}
         domain={{ y: [10, 2000] }}
         standalone={true}
         groupComponent={<CanvasGroup />}
@@ -92,7 +106,7 @@ export const LatencyChart = ({ data, serviceId }) => {
       />
       <VictoryLine
         data={_data.map((d) => ({ x: d.x, y: d.y[1] }))}
-        style={{ data: { stroke: theme.success } }}
+        style={{ data: { stroke: theme.blue } }}
         standalone={true}
       />
     </VictoryGroup>

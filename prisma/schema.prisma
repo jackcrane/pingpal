@@ -31,6 +31,14 @@ model Workspace {
 
   subdomain String? @unique
 
+  footerLinks Link[]
+  headerLinkId String? @unique
+  headerLink Link? @relation(name: "HeaderLink", fields: [headerLinkId], references: [id])
+
+  footerMessage String?
+
+  showsPingpalLogo Boolean @default(true)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -122,6 +130,39 @@ model Comment {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Link {
+  id String @id @default(uuid())
+  text String
+  url String
+  icon Icon?
+
+  footerWorkspaceId String?
+  footerWorkspace Workspace? @relation(fields: [footerWorkspaceId], references: [id], onDelete: Cascade)
+  headerLinkWorkspace Workspace? @relation(name: "HeaderLink")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum Icon {
+  GITHUB
+  TWITTER
+  LINKEDIN
+  INSTAGRAM
+  FACEBOOK
+  YOUTUBE
+  DISCORD
+  SLACK
+  PHONE
+  EMAIL
+  WEBSITE
+  BLOG
+  PAYMENT
+  BTC
+  ETH
+  DRIBBBLE
 }
 
 enum OutageStatus {

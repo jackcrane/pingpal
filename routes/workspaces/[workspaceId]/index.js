@@ -13,6 +13,8 @@ export const get = async (req, res) => {
           lastCheck: true,
         },
       },
+      headerLink: true,
+      footerLinks: true,
     },
   });
   if (!workspace) {

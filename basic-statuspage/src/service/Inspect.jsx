@@ -154,11 +154,9 @@ export const Inspect = ({ bucket, averages }) => {
           <Ul>
             {bucket.failure_details.map((f) => (
               <Li key={f.id}>
-                <FailureLink to={`failures/${f.id}`}>
-                  <P style={{ display: "inline" }}>
-                    {moment(f.timestamp).format("M/D, h:mm:ss a")}
-                  </P>
-                </FailureLink>
+                <P style={{ display: "inline" }}>
+                  {moment(f.timestamp).format("M/D, h:mm:ss a")}
+                </P>
               </Li>
             ))}
           </Ul>

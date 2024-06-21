@@ -8,6 +8,8 @@ import useSubdomain from "../hooks/useSubdomain";
 import { BackToWorkspace } from "./Kit";
 import { ArrowCircleLeft } from "@phosphor-icons/react";
 import { useDocumentTitle } from "@uidotdev/usehooks";
+import { Header } from "../Header";
+import { Footer } from "../Footer";
 
 export default ({}) => {
   const { serviceId } = useParams();
@@ -30,15 +32,19 @@ export default ({}) => {
 
   return (
     <Container>
-      <H1>{service.service.name}</H1>
-      <BackToWorkspace to="/">
-        <ArrowCircleLeft />
-        {workspace.name || "Back to workspace"}
-      </BackToWorkspace>
+      <Header />
+      <div>
+        <H1>{service.service.name}</H1>
+        <BackToWorkspace to="/">
+          <ArrowCircleLeft />
+          {workspace.name || "Back to workspace"}
+        </BackToWorkspace>
+      </div>
       <Spacer height="50px" />
       <ServiceContainer>
         <Service key={serviceId} serviceId={serviceId} fullscreen={true} />
       </ServiceContainer>
+      <Footer />
     </Container>
   );
 };

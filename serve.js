@@ -14,6 +14,7 @@ const app = express();
 
 app.use(cors());
 
+app.use("/assets", express.static("static"));
 app.use(express.static("basic-statuspage/dist"));
 await createRouter(app); // as wrapper function
 

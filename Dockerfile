@@ -10,7 +10,7 @@ RUN npm install
 
 COPY . .
 
-ENV DATABASE_URL="mysql://apps:Guro6297@db.jackcrane.rocks:3306/pingpal"
+ENV DATABASE_URL="postgresql://doadmin:AVNS_atgz7H8w0eZn8wpMgtR@pingpal-db-do-user-7960971-0.c.db.ondigitalocean.com:25060/pingpal?sslmode=require"
 RUN yarn build_db
 RUN yarn build_basicstatuspage
 

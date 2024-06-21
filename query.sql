@@ -2,27 +2,25 @@
     WITH CombinedData AS (
       SELECT
         id AS id,
-        createdAt AS timestamp,
+        "createdAt" AS timestamp,
         'success' AS status,
-        latency,
-        NULL as outageId
+        latency
       FROM
-        Hit
+        "Hit"
       WHERE
-        serviceId = 'd76df059-cd21-4d70-8500-93553411452d'
-        AND createdAt >= NOW() - INTERVAL 30 DAY
+        "serviceId" = 'e1674958-6e4c-4dd6-8a24-d899290c0f9b'
+        AND "createdAt" >= NOW() - INTERVAL '30 DAY'
       UNION ALL
       SELECT
         id AS id,
-        createdAt AS timestamp,
+        "createdAt" AS timestamp,
         'failure' AS status,
-        latency,
-        outageId
+        latency
       FROM
-        Failure
+        "Failure"
       WHERE
-        serviceId = 'd76df059-cd21-4d70-8500-93553411452d'
-        AND createdAt >= NOW() - INTERVAL 30 DAY
+        "serviceId" = 'e1674958-6e4c-4dd6-8a24-d899290c0f9b'
+        AND "createdAt" >= NOW() - INTERVAL '30 DAY'
     ),
     TimeBuckets AS (
       SELECT
@@ -37,7 +35,7 @@
         COUNT(*) AS total,
         COUNT(CASE WHEN status = 'success' THEN 1 END) AS success_count,
         COUNT(CASE WHEN status = 'failure' THEN 1 END) AS failure_count,
-        GROUP_CONCAT(DISTINCT CASE WHEN status = 'failure' THEN CONCAT(outageId, '$', timestamp) END SEPARATOR ',') AS outage_details,
+        STRING_AGG(CASE WHEN status = 'failure' THEN id || '$' || timestamp END, ',') AS failure_details,
         AVG(latency) AS avg_latency,
         MAX(latency) AS max_latency,
         MIN(latency) AS min_latency,
@@ -84,7 +82,7 @@
 
     SELECT
       bs.bucket,
-      (bs.success_count / bs.total) * 100 AS success_percentage,
+      (CAST(bs.success_count AS FLOAT) / bs.total) * 100 AS success_percentage,
       bs.success_count,
       bs.failure_count,
       bs.total,
@@ -94,7 +92,7 @@
       bq.median_latency,
       bq.q1_latency,
       bq.q3_latency,
-      bs.outage_details,
+      bs.failure_details,
       bs.starting_time,
       bs.ending_time
     FROM

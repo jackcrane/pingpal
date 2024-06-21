@@ -75,12 +75,13 @@ export const get = async (req, res) => {
 
   const overallQuery = Prisma.sql`
     SELECT
-    (SELECT COUNT(*) FROM Hit WHERE serviceId = ${req.params.serviceId}) * 100.0 /
+    (SELECT COUNT(*) FROM "Hit" WHERE "serviceId" = ${req.params.serviceId}) * 100.0 /
     (
-        (SELECT COUNT(*) FROM Hit WHERE serviceId = ${req.params.serviceId}) +
-        (SELECT COUNT(*) FROM Failure WHERE serviceId = ${req.params.serviceId})
+        (SELECT COUNT(*) FROM "Hit" WHERE "serviceId" = ${req.params.serviceId}) +
+        (SELECT COUNT(*) FROM "Failure" WHERE "serviceId" = ${req.params.serviceId})
     ) AS success_percentage;
   `;
+
   const success_query = await prisma.$queryRaw(overallQuery);
   const success_percentage = parseFloat(success_query[0].success_percentage);
   const overallQueryTime =
@@ -90,25 +91,25 @@ export const get = async (req, res) => {
     WITH CombinedData AS (
       SELECT
         id AS id,
-        createdAt AS timestamp,
+        "createdAt" AS timestamp,
         'success' AS status,
         latency
       FROM
-        Hit
+        "Hit"
       WHERE
-        serviceId = '${req.params.serviceId}'
-        AND createdAt >= NOW() - INTERVAL ${realInterval}
+        "serviceId" = '${req.params.serviceId}'
+        AND "createdAt" >= NOW() - INTERVAL '${realInterval}'
       UNION ALL
       SELECT
         id AS id,
-        createdAt AS timestamp,
+        "createdAt" AS timestamp,
         'failure' AS status,
         latency
       FROM
-        Failure
+        "Failure"
       WHERE
-        serviceId = '${req.params.serviceId}'
-        AND createdAt >= NOW() - INTERVAL ${realInterval}
+        "serviceId" = '${req.params.serviceId}'
+        AND "createdAt" >= NOW() - INTERVAL '${realInterval}'
     ),
     TimeBuckets AS (
       SELECT
@@ -123,7 +124,7 @@ export const get = async (req, res) => {
         COUNT(*) AS total,
         COUNT(CASE WHEN status = 'success' THEN 1 END) AS success_count,
         COUNT(CASE WHEN status = 'failure' THEN 1 END) AS failure_count,
-        GROUP_CONCAT(CASE WHEN status = 'failure' THEN CONCAT(id, '$', timestamp) END SEPARATOR ',') AS failure_details,
+        STRING_AGG(CASE WHEN status = 'failure' THEN id || '$' || timestamp END, ',') AS failure_details,
         AVG(latency) AS avg_latency,
         MAX(latency) AS max_latency,
         MIN(latency) AS min_latency,
@@ -170,7 +171,7 @@ export const get = async (req, res) => {
 
     SELECT
       bs.bucket,
-      (bs.success_count / bs.total) * 100 AS success_percentage,
+      (CAST(bs.success_count AS FLOAT) / bs.total) * 100 AS success_percentage,
       bs.success_count,
       bs.failure_count,
       bs.total,
@@ -190,6 +191,8 @@ export const get = async (req, res) => {
     ORDER BY
       bs.bucket;
   `;
+
+  writeFileSync("query.sql", query);
 
   const points = await prisma.$queryRawUnsafe(query);
   const mainQueryTime =

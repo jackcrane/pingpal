@@ -59,7 +59,7 @@ async function closeOutage(serviceId) {
 async function pingService(service) {
   const serviceId = service.id;
   await prisma.$queryRaw`
-    UPDATE Service SET lastCheck = NOW() WHERE id = ${serviceId};
+    UPDATE "Service" SET "lastCheck" = NOW() WHERE id = ${serviceId};
   `;
   const startTime = new Date();
   let request;
@@ -148,8 +148,8 @@ async function pingService(service) {
 async function main() {
   const services = await prisma.$queryRaw`
     SELECT *
-    FROM Service
-    WHERE TIMESTAMPDIFF(SECOND, lastCheck, NOW()) > checkInterval;
+    FROM "Service"
+    WHERE AGE(NOW(), "lastCheck") > ("checkInterval" || ' seconds')::INTERVAL;
   `;
   for (const service of services) {
     pingService(service);

@@ -2,6 +2,8 @@ import { FailureReason, OutageStatus, PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 import fetch from "node-fetch";
 
+const LOG_FAILURE = false;
+
 async function logFailure({
   service,
   status,
@@ -61,7 +63,7 @@ async function pingService(service) {
   await prisma.$queryRaw`
     UPDATE "Service" SET "lastCheck" = NOW() WHERE id = ${serviceId};
   `;
-  await prisma.$disconnect();
+  // await prisma.$disconnect();
   const startTime = new Date();
   let request;
   try {
@@ -71,7 +73,7 @@ async function pingService(service) {
       method: service.method,
     });
   } catch (error) {
-    console.log(`Service ${service.name} is down [HTTP Error]`);
+    LOG_FAILURE && console.log(`Service ${service.name} is down [HTTP Error]`);
     logFailure({
       service: service,
       message: "The URL could not be resolved (HTTP Error)",
@@ -82,7 +84,10 @@ async function pingService(service) {
   const endTime = new Date();
   const responseTime = endTime - startTime;
   if (responseTime > service.maxLatency) {
-    console.log(`Service ${service.name} is down [Latency (${responseTime})]`);
+    LOG_FAILURE &&
+      console.log(
+        `Service ${service.name} is down [Latency (${responseTime})]`
+      );
     logFailure({
       service: service,
       status: request.status,
@@ -94,7 +99,7 @@ async function pingService(service) {
     return;
   }
   if (!request) {
-    console.log(`Service ${service.name} is down [No Response]`);
+    LOG_FAILURE && console.log(`Service ${service.name} is down [No Response]`);
     logFailure({
       service: service,
       status: null,
@@ -106,9 +111,10 @@ async function pingService(service) {
     return;
   }
   if (request.status !== service.expectedStatus) {
-    console.log(
-      `Service ${service.name} is down [Status Code (${request.status})]`
-    );
+    LOG_FAILURE &&
+      console.log(
+        `Service ${service.name} is down [Status Code (${request.status})]`
+      );
     logFailure({
       service: service,
       status: request.status,
@@ -123,7 +129,7 @@ async function pingService(service) {
   if (service.expectedText && service.expectedText !== "") {
     const data = await request.text();
     if (!data.toLowerCase().includes(service.expectedText?.toLowerCase())) {
-      console.log(`Service ${service.name} is down [Text]`);
+      LOG_FAILURE && console.log(`Service ${service.name} is down [Text]`);
       logFailure({
         service: service,
         status: request.status,
@@ -136,7 +142,7 @@ async function pingService(service) {
       return;
     }
   }
-  console.log(`Service ${service.name} is up`);
+  LOG_FAILURE && console.log(`Service ${service.name} is up`);
   await prisma.hit.create({
     data: {
       serviceId: serviceId,
@@ -152,7 +158,7 @@ async function main() {
     FROM "Service"
     WHERE AGE(NOW(), "lastCheck") > ("checkInterval" || ' seconds')::INTERVAL;
   `;
-  await prisma.$disconnect();
+  // await prisma.$disconnect();
   for (const service of services) {
     pingService(service);
   }

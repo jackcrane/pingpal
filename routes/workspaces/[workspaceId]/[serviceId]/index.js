@@ -1,5 +1,4 @@
-import { Prisma } from "@prisma/client";
-import { prisma } from "../../../../lib/prisma.js";
+import { prisma, Prisma } from "../../../../lib/prisma.js";
 import { writeFileSync } from "fs";
 BigInt.prototype.toJSON = function () {
   return parseFloat(this.toString());
@@ -83,7 +82,7 @@ export const get = async (req, res) => {
   `;
 
   const success_query = await prisma.$queryRaw(overallQuery);
-  await prisma.$disconnect();
+  // await prisma.$disconnect();
 
   const success_percentage = parseFloat(success_query[0].success_percentage);
   const overallQueryTime =
@@ -197,7 +196,7 @@ export const get = async (req, res) => {
   writeFileSync("query.sql", query);
 
   const points = await prisma.$queryRawUnsafe(query);
-  await prisma.$disconnect();
+  // await prisma.$disconnect();
 
   const mainQueryTime =
     Date.now() -

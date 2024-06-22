@@ -4,6 +4,7 @@ import main from "./app.js";
 import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
+import { prisma } from "./lib/prisma.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -27,3 +28,25 @@ app.get("*", (req, res) => {
 app.listen(2000, () => {
   console.log("Server is running on port 2000");
 });
+
+setInterval(async () => {
+  const metrics = await prisma.$metrics.json();
+  console.log(
+    new Date().toISOString(),
+    " Open pool connections: ",
+    getFromKey("prisma_pool_connections_open", metrics.counters).value,
+    " | Active queries: ",
+    getFromKey("prisma_client_queries_active", metrics.gauges).value,
+    " | Waiting queries: ",
+    getFromKey("prisma_client_queries_wait", metrics.gauges).value,
+    " | Busy connections: ",
+    getFromKey("prisma_pool_connections_busy", metrics.gauges).value,
+    " | Idle connections: ",
+    getFromKey("prisma_pool_connections_idle", metrics.gauges).value
+  );
+  // await prisma.$disconnect();
+}, 1000);
+
+const getFromKey = (key, arr) => {
+  return arr.find((item) => item.key === key);
+};

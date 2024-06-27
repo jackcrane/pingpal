@@ -177,7 +177,7 @@ export const Service = ({ serviceId, fullscreen = false }) => {
               <Spacer />
               <H3>Outages</H3>
               <Spacer />
-              {outages.map((outage) => (
+              {outages?.map((outage) => (
                 <Outage
                   key={outage.id}
                   outageId={outage.id}

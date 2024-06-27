@@ -1,5 +1,6 @@
 import { prisma, Prisma } from "../../../../lib/prisma.js";
-import { writeFileSync } from "fs";
+import { writeFileSync, readFileSync, existsSync, unlinkSync } from "fs";
+import { join } from "path";
 BigInt.prototype.toJSON = function () {
   return parseFloat(this.toString());
 };
@@ -13,6 +14,7 @@ export const get = async (req, res) => {
       error: "Invalid interval",
     });
   }
+
   let realInterval;
   switch (interval) {
     case "30m":
@@ -65,12 +67,31 @@ export const get = async (req, res) => {
       error: "Service not found",
     });
   }
-  if (!service.id === req.params.serviceId) {
+  if (service.id !== req.params.serviceId) {
     return res.status(403).json({
       error: "Forbidden",
     });
   }
   const serviceVerificationTime = Date.now() - startTime - spinUpTime;
+
+  if (!existsSync("__cache")) {
+    mkdirSync("__cache");
+  }
+
+  const cacheFile = join(
+    "__cache",
+    `${req.params.serviceId}$${interval}$${bucketCount}.json`
+  );
+
+  if (existsSync(cacheFile)) {
+    const cacheData = JSON.parse(readFileSync(cacheFile, "utf-8"));
+    const cacheTime = new Date(cacheData.timestamp);
+    if (Date.now() - cacheTime.getTime() < 60 * 1000 * 5) {
+      return res.json(cacheData);
+    } else {
+      unlinkSync(cacheFile);
+    }
+  }
 
   const overallQuery = Prisma.sql`
     SELECT
@@ -84,8 +105,6 @@ export const get = async (req, res) => {
   console.log("┏━OPENING OVERALL QUERY OP================================");
   console.log(`┃ Running overallQuery for ${req.params.serviceId}`);
   const success_query = await prisma.$queryRaw(overallQuery);
-
-  // await prisma.$disconnect();
 
   const success_percentage = parseFloat(success_query[0].success_percentage);
   const overallQueryTime =
@@ -203,22 +222,8 @@ export const get = async (req, res) => {
   const [points] = await prisma.$transaction([prisma.$queryRawUnsafe(query)], {
     timeout: 5000,
   });
-  writeFileSync(
-    `__cache/${
-      req.params.serviceId
-    }$${interval}$${bucketCount}$${new Date().toISOString()}.json`,
-    JSON.stringify(points, null, 2)
-  );
-  // await prisma.$disconnect();
 
-  const mainQueryTime =
-    Date.now() -
-    startTime -
-    spinUpTime -
-    serviceVerificationTime -
-    overallQueryTime;
-
-  res.json({
+  const responseData = {
     length: points.length,
     offset: 0,
     success_percentage,
@@ -226,7 +231,12 @@ export const get = async (req, res) => {
       spin_up: spinUpTime,
       service_verification: serviceVerificationTime,
       overall_query: overallQueryTime,
-      main_query: mainQueryTime,
+      main_query:
+        Date.now() -
+        startTime -
+        spinUpTime -
+        serviceVerificationTime -
+        overallQueryTime,
       total: Date.now() - startTime,
     },
     service: {
@@ -276,5 +286,10 @@ export const get = async (req, res) => {
           : [],
       };
     }),
-  });
+  };
+
+  responseData.timestamp = new Date().toISOString();
+  writeFileSync(cacheFile, JSON.stringify(responseData, null, 2));
+
+  res.json(responseData);
 };

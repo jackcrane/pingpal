@@ -8,7 +8,7 @@
       FROM
         "Hit"
       WHERE
-        "serviceId" = '7162756e-3b0a-441c-bf1a-cc73b0a49e20'
+        "serviceId" = 'c194b51e-3f9f-4bec-b9f2-4f79ddb46de9'
         AND "createdAt" >= NOW() - INTERVAL '30 DAY'
       UNION ALL
       SELECT
@@ -19,7 +19,7 @@
       FROM
         "Failure"
       WHERE
-        "serviceId" = '7162756e-3b0a-441c-bf1a-cc73b0a49e20'
+        "serviceId" = 'c194b51e-3f9f-4bec-b9f2-4f79ddb46de9'
         AND "createdAt" >= NOW() - INTERVAL '30 DAY'
     ),
     TimeBuckets AS (

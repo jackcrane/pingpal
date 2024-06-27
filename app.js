@@ -60,9 +60,15 @@ async function closeOutage(serviceId) {
 
 async function pingService(service) {
   const serviceId = service.id;
+  console.log("┏━OPENING LAST CHECK SET OP================================");
+  console.log(`┃ Running overallQuery for ${serviceId}`);
+  const updateStartTime = new Date();
   await prisma.$queryRaw`
     UPDATE "Service" SET "lastCheck" = NOW() WHERE id = ${serviceId};
   `;
+  const updateEndTime = new Date();
+  console.log(`┃ Overall query time: ${updateEndTime - updateStartTime}`);
+  console.log("┗━CLOSING LAST CHECK SET OP================================");
   // await prisma.$disconnect();
   const startTime = new Date();
   let request;

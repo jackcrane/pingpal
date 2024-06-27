@@ -11,6 +11,7 @@
     "start": "node serve.js",
     "build_basicstatuspage": "cd basic-statuspage && yarn && npm run build",
     "build:fe": "yarn build_basicstatuspage",
+    "build:landing": "cd landing && yarn && npm run build",
     "dev:fe": "cd basic-statuspage && yarn start"
   },
   "keywords": [],

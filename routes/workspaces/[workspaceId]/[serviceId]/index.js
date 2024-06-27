@@ -81,12 +81,17 @@ export const get = async (req, res) => {
     ) AS success_percentage;
   `;
 
+  console.log("┏━OPENING OVERALL QUERY OP================================");
+  console.log(`┃ Running overallQuery for ${req.params.serviceId}`);
   const success_query = await prisma.$queryRaw(overallQuery);
+
   // await prisma.$disconnect();
 
   const success_percentage = parseFloat(success_query[0].success_percentage);
   const overallQueryTime =
     Date.now() - startTime - spinUpTime - serviceVerificationTime;
+  console.log(`┃ Overall query time: ${overallQueryTime}`);
+  console.log("┗━CLOSING OVERALL QUERY OP================================");
 
   const query = `
     WITH CombinedData AS (
@@ -195,7 +200,15 @@ export const get = async (req, res) => {
 
   writeFileSync("query.sql", query);
 
-  const points = await prisma.$queryRawUnsafe(query);
+  const [points] = await prisma.$transaction([prisma.$queryRawUnsafe(query)], {
+    timeout: 5000,
+  });
+  writeFileSync(
+    `__cache/${
+      req.params.serviceId
+    }$${interval}$${bucketCount}$${new Date().toISOString()}.json`,
+    JSON.stringify(points, null, 2)
+  );
   // await prisma.$disconnect();
 
   const mainQueryTime =

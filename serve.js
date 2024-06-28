@@ -18,8 +18,9 @@ app.use(cors());
 app.use("/assets", express.static("static"));
 
 app.use((req, res, next) => {
-  const host = req.hostname;
-  const subdomain = host.split(".")[0].replace(".online", "");
+  let host = req.hostname;
+  const subdomain = host.split(".")[0];
+  host = host.replace(".online", "");
 
   console.log(subdomain, host);
   if (subdomain === "dashboard") {

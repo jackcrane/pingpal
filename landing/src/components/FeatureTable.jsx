@@ -20,6 +20,9 @@ const FeatureTableTable = Styled.table`
 const Th = Styled.th`
   padding: 10px;
   border: 1px solid ${(props) => props.theme.border};
+  @media screen and (max-width: 600px) {
+    display: none;
+  }
 `;
 
 const Td = Styled.td`
@@ -27,6 +30,11 @@ const Td = Styled.td`
   border: 1px solid ${(props) => props.theme.border};
   text-align: ${(props) => (props.left ? "left" : "center")};
   width: 70px;
+  @media screen and (max-width: 600px) {
+    &:not(:first-of-type) {
+      display: none;
+    }
+  }
   /* Unset width for the first of type */
   &:first-of-type {
     width: unset;
@@ -264,6 +272,27 @@ const PreviewPill = Styled.span`
   font-weight: bold;
 `;
 
+const MobileFeatureRow = Styled(Row)`
+  display: none;
+  justify-content: flex-end;
+  @media screen and (max-width: 600px) {
+    display: flex;
+  }
+`;
+
+const Card = Styled.div`
+  border: 1px solid ${(props) => props.theme.border};
+  border-radius: 10px;
+  padding: 5px;
+  margin: 5px;
+  width: 50px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+`;
+
 const _FeatureTable = ({ data }) => {
   return (
     <FeatureTableContainer>
@@ -286,6 +315,23 @@ const _FeatureTable = ({ data }) => {
                 {feature.preview && <PreviewPill>Preview</PreviewPill>}
               </Row>
               <P>{feature.description}</P>
+              <MobileFeatureRow>
+                <Card>
+                  <b>Free</b>
+                  {feature.free && <CheckIcon />}
+                  {!feature.free && <XIcon />}
+                </Card>
+                <Card>
+                  <b>Launch</b>
+                  {feature.launch && <CheckIcon />}
+                  {!feature.launch && <XIcon />}
+                </Card>
+                <Card>
+                  <b>Pro</b>
+                  {feature.pro && <CheckIcon />}
+                  {!feature.pro && <XIcon />}
+                </Card>
+              </MobileFeatureRow>
             </Td>
             <Td>
               {feature.free && <CheckIcon />}

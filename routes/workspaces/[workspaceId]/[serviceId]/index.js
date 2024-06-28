@@ -1,4 +1,4 @@
-import { prisma, Prisma } from "../../../../lib/prisma.js";
+import { pgClient, prisma, Prisma } from "../../../../lib/prisma.js";
 import {
   writeFileSync,
   readFileSync,
@@ -225,9 +225,11 @@ export const get = async (req, res) => {
 
   writeFileSync("query.sql", query);
 
-  const [points] = await prisma.$transaction([prisma.$queryRawUnsafe(query)], {
-    timeout: 5000,
-  });
+  // const [points] = await prisma.$transaction([prisma.$queryRawUnsafe(query)], {
+  //   timeout: 5000,
+  // });
+
+  const points = (await pgClient.query(query)).rows;
 
   const responseData = {
     length: points.length,

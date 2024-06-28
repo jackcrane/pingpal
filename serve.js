@@ -21,15 +21,19 @@ app.use((req, res, next) => {
   const host = req.hostname;
   const subdomain = host.split(".")[0];
 
+  console.log(subdomain, host);
   if (subdomain === "dashboard") {
+    console.log("dashboard");
     express.static(path.join(__dirname, "dashboard/dist"))(req, res, next);
   } else if (subdomain !== "dashboard" && host.includes(".")) {
+    console.log("basic-statuspage");
     express.static(path.join(__dirname, "basic-statuspage/dist"))(
       req,
       res,
       next
     );
   } else {
+    console.log("landing");
     express.static(path.join(__dirname, "landing/dist"))(req, res, next);
   }
 });

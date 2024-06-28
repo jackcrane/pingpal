@@ -108,15 +108,11 @@ export const get = async (req, res) => {
     ) AS success_percentage;
   `;
 
-  console.log("┏━OPENING OVERALL QUERY OP================================");
-  console.log(`┃ Running overallQuery for ${req.params.serviceId}`);
   const success_query = await prisma.$queryRaw(overallQuery);
 
   const success_percentage = parseFloat(success_query[0].success_percentage);
   const overallQueryTime =
     Date.now() - startTime - spinUpTime - serviceVerificationTime;
-  console.log(`┃ Overall query time: ${overallQueryTime}`);
-  console.log("┗━CLOSING OVERALL QUERY OP================================");
 
   const query = `
     WITH CombinedData AS (

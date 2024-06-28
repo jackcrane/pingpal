@@ -1,5 +1,11 @@
 import { prisma, Prisma } from "../../../../lib/prisma.js";
-import { writeFileSync, readFileSync, existsSync, unlinkSync } from "fs";
+import {
+  writeFileSync,
+  readFileSync,
+  existsSync,
+  unlinkSync,
+  mkdirSync,
+} from "fs";
 import { join } from "path";
 BigInt.prototype.toJSON = function () {
   return parseFloat(this.toString());

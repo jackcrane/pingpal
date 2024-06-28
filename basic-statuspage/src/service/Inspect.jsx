@@ -58,7 +58,7 @@ export const Inspect = ({ bucket, averages }) => {
         <span>
           [<Red>{bucket.failure_count}</Red>/
           <Green>{bucket.success_count}</Green>/<Blue>{bucket.total}</Blue>]{" "}
-          <i>{bucket.success_percentage.toFixed(0)}%</i>
+          <i>{Math.floor(bucket.success_percentage).toFixed(0)}%</i>
         </span>
       </Between>
       <H4>Latency</H4>
@@ -148,7 +148,7 @@ export const Inspect = ({ bucket, averages }) => {
         <DownTrend />
         <S>Lower than average</S>
       </Row>
-      <H4>Failures</H4>
+      {/* <H4>Failures</H4>
       {bucket.failure_count > 0 ? (
         <>
           <Ul>
@@ -166,7 +166,7 @@ export const Inspect = ({ bucket, averages }) => {
           <P>No failures</P>
           <Smiley />
         </Row>
-      )}
+      )} */}
     </Column>
   );
 };

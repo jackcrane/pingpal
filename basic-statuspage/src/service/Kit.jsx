@@ -91,8 +91,11 @@ export const PillRow = styled.div`
 const mapUptimeToSize = (uptime, fullscreen) =>
   fullscreen ? (uptime / 100) * 50 + 3 : (uptime / 100) * 20 + 3;
 
-export const StatusPill = styled.div`
+const _StatusPillContainer = styled.div`
   position: relative;
+`;
+
+const _StatusPill = styled.div`
   height: ${(props) => mapUptimeToSize(props.uptime, props.fullscreen)}px;
   /* width: 2px; */
   width: ${(props) => (props.fullscreen ? "8px" : "2px")};
@@ -110,7 +113,7 @@ export const StatusPill = styled.div`
   }
   border-radius: 15px;
   background: ${(props) =>
-    props.uptime > 99
+    props.uptime == 100
       ? props.theme.success
       : props.uptime > 70
       ? props.theme.warning
@@ -118,6 +121,67 @@ export const StatusPill = styled.div`
       ? props.theme.badnews
       : props.theme.danger};
 `;
+
+const _StatusPillLabel = styled.div`
+  position: absolute;
+  bottom: -67px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 0.8rem;
+  transform: rotate(270deg)
+    translateY(
+      ${(props) =>
+        props.cheatLeft ? "10px" : props.cheatRight ? "-10px" : "0"}
+    );
+  color: ${({ theme }) => theme.subtext};
+  white-space: nowrap;
+  background-color: ${({ theme }) => theme.bg};
+  z-index: 1;
+`;
+
+const _StatusPillLabelText = styled.span`
+  border: 1px solid ${({ theme }) => theme.border};
+  width: 45px;
+  display: block;
+`;
+
+const _StatusPillLine = styled.div`
+  height: 1px;
+  width: 20px;
+  background: ${({ theme }) => theme.border};
+  margin: 0;
+  position: absolute;
+  transform: rotate(90deg) translateX(5px) translateY(6px);
+  @media screen and (max-width: 1300px) {
+    transform: rotate(90deg) translateX(5px) translateY(7px);
+  }
+  @media screen and (max-width: 1100px) {
+    transform: rotate(90deg) translateX(5px) translateY(8px);
+  }
+  @media screen and (max-width: 600px) {
+    transform: rotate(90deg) translateX(5px) translateY(9px);
+  }
+`;
+
+export const StatusPill = (props) => {
+  return (
+    <_StatusPillContainer>
+      <_StatusPill {...props} />
+      {props.fullscreen && props.showLabel && (
+        <>
+          <_StatusPillLine />
+          <_StatusPillLabel
+            cheatLeft={props.bucketNumber == 1}
+            cheatRight={props.bucketNumber == 100}
+          >
+            <_StatusPillLabelText>{props.labelText}</_StatusPillLabelText>
+          </_StatusPillLabel>
+        </>
+      )}
+    </_StatusPillContainer>
+  );
+};
 
 export const PillHoverHost = styled.div`
   position: absolute;
@@ -149,6 +213,14 @@ export const Green = styled.span`
 
 export const Blue = styled.span`
   color: ${({ theme }) => theme.blue};
+`;
+
+export const Yellow = styled.span`
+  color: ${({ theme }) => theme.warning};
+`;
+
+export const Orange = styled.span`
+  color: ${({ theme }) => theme.badnews};
 `;
 
 export const ValueBlock = styled.div`

@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { Between, Column, H4, P, Spacer } from "../../kit";
+import { Between, Column, H4, P, Row, Spacer } from "../../kit";
 import useOutage from "../../hooks/useOutage";
 import {
   Card,
+  DropdownButton,
   Duration,
   Hr,
   HrHiddenLarge,
@@ -12,9 +13,11 @@ import {
 } from "./Kit";
 import { Comment } from "./Comment";
 import moment from "moment";
-import { Green, Red } from "../Kit";
+import { BucketSelectorButton, Green, Red } from "../Kit";
+import { CaretCircleRight, CaretRight } from "@phosphor-icons/react";
+import { useTheme } from "styled-components";
 
-const Outage = ({ outageId, serviceId }) => {
+const Outage = ({ outageId, serviceId, open: _open = false }) => {
   const { loading, outage, sortedFailures } = useOutage({
     outageId,
     serviceId,
@@ -22,6 +25,8 @@ const Outage = ({ outageId, serviceId }) => {
     includeComments: true,
   });
   const [outageDuration, setOutageDuration] = useState(0);
+
+  const [open, setOpen] = useState(_open);
 
   useEffect(() => {
     if (!outage) return;
@@ -56,6 +61,8 @@ const Outage = ({ outageId, serviceId }) => {
     }
   };
 
+  const theme = useTheme();
+
   if (outageDuration === 0) {
     return null;
   }
@@ -72,13 +79,18 @@ const Outage = ({ outageId, serviceId }) => {
 
   return (
     <Card>
-      <Between>
-        <P>
-          {moment(sortedFailures[sortedFailures.length - 1].end).format(
-            "M/D, h:mm:ss a"
-          )}{" "}
-          - {moment(sortedFailures[0].start).format("M/D, h:mm:ss a")}
-        </P>
+      <Between style={{ cursor: "pointer" }} onClick={() => setOpen(!open)}>
+        <Row style={{ gap: 10 }}>
+          <DropdownButton open={open} onClick={() => setOpen(!open)}>
+            <CaretRight size={20} color={theme.subtext} />
+          </DropdownButton>
+          <P>
+            {moment(sortedFailures[sortedFailures.length - 1].end).format(
+              "M/D, h:mm:ss a"
+            )}{" "}
+            - {moment(sortedFailures[0].start).format("M/D, h:mm:ss a")}
+          </P>
+        </Row>
         <span>
           {outage.status === "OPEN" ? (
             <>
@@ -91,8 +103,8 @@ const Outage = ({ outageId, serviceId }) => {
           )}
         </span>
       </Between>
-      <Hr />
-      <OutageDetailsContainer>
+      {open && <Hr />}
+      <OutageDetailsContainer open={open}>
         <OutageDetail>
           <H4>Outage Information</H4>
           <Between>

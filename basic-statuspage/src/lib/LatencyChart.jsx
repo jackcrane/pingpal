@@ -60,7 +60,7 @@ export const LatencyChart = ({ data, serviceId }) => {
   return (
     <VictoryGroup
       scale={{ y: "sqrt" }}
-      height={windowWidth > 900 ? 600 : 200}
+      height={windowWidth > 900 ? 500 : 200}
       width={width}
       standalone={true}
       padding={4}

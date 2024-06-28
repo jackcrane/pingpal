@@ -14,6 +14,10 @@ import {
   Kbd,
   OutageCard,
   WorkingCard,
+  Green,
+  Red,
+  Yellow,
+  Orange,
 } from "./Kit";
 import useService from "../hooks/useService";
 import { Between, Column, H3, H4, P, Relative, Row, Spacer } from "../kit";
@@ -23,11 +27,12 @@ import {
   ArrowFatUp,
   ArrowLeft,
   ArrowRight,
-  ArrowSquareLeft,
+  CaretUpDown,
   ArrowSquareRight,
-  SmileyMelting,
+  SquareHalf,
   ThumbsUp,
   WarningDiamond,
+  CaretDown,
 } from "@phosphor-icons/react";
 import { Inspect } from "./Inspect";
 import { PillHoverHostController } from "./PillHoverHostController";
@@ -35,6 +40,7 @@ import useServiceOutages from "../hooks/useServiceOutages";
 import moment from "moment";
 import Outage from "./outage/Index";
 import { useFavicon } from "@uidotdev/usehooks";
+import { Tooltip } from "./outage/Kit";
 
 export const Service = ({ serviceId, fullscreen = false }) => {
   let globalTimeout = null;
@@ -121,8 +127,21 @@ export const Service = ({ serviceId, fullscreen = false }) => {
               {service.data.map((d, index) => (
                 <StatusPill
                   key={d.bucket}
+                  bucketNumber={d.bucket}
                   uptime={d.success_percentage}
                   fullscreen={fullscreen}
+                  labelText={moment(d.ending_time).format("M/D") + " ↓"}
+                  showLabel={
+                    index > 0
+                      ? moment(d.ending_time)
+                          .startOf("day")
+                          .diff(
+                            moment(service.data[index - 1].ending_time).startOf(
+                              "day"
+                            )
+                          ) !== 0 && moment(d.ending_time).date() % 2 === 0
+                      : true
+                  }
                 >
                   {fullscreen ? (
                     <PillHoverHostController
@@ -136,6 +155,59 @@ export const Service = ({ serviceId, fullscreen = false }) => {
                 </StatusPill>
               ))}
             </PillRow>
+            {fullscreen && (
+              <>
+                <Spacer height="65px" />
+                <Row style={{ gap: 10 }}>
+                  <Green>
+                    <Row>
+                      <CaretUpDown
+                        size={16}
+                        color={theme.success}
+                        weight="bold"
+                      />{" "}
+                      100%
+                    </Row>
+                  </Green>
+                  <Yellow>
+                    <Row>
+                      <CaretUpDown
+                        size={16}
+                        color={theme.warning}
+                        weight="bold"
+                      />{" "}
+                      (70% - 100%)
+                    </Row>
+                  </Yellow>
+                  <Orange>
+                    <Row>
+                      <CaretUpDown
+                        size={16}
+                        color={theme.badnews}
+                        weight="bold"
+                      />{" "}
+                      (10% - 70%]
+                    </Row>
+                  </Orange>
+                  <Red>
+                    <Row>
+                      <CaretUpDown
+                        size={16}
+                        color={theme.danger}
+                        weight="bold"
+                      />{" "}
+                      [0% - 10%]
+                    </Row>
+                  </Red>
+                  <Tooltip
+                    text={"Interval notation"}
+                    message={
+                      "Brackets are inclusive, parenthesis are exclusive. (10-70] does not include 10, but includes 70."
+                    }
+                  />
+                </Row>
+              </>
+            )}
             <Spacer />
           </NoOverflow>
 

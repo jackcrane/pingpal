@@ -140,7 +140,7 @@ export const Service = ({ serviceId, fullscreen = false }) => {
                               "day"
                             )
                           ) !== 0 && moment(d.ending_time).date() % 2 === 0
-                      : true
+                      : false
                   }
                 >
                   {fullscreen ? (

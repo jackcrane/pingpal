@@ -61,6 +61,7 @@ export const Between = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
+  width: 100%;
 `;
 
 export const Row = styled.div`
@@ -149,6 +150,11 @@ const _Link = styled(Link)`
     background-color: ${({ theme }) => Color(theme.border).alpha(0.4).string()};
   }
   transition: background-color 0.2s;
+`;
+
+export const GlowingLink = styled(_Link)`
+  font-size: 1.5rem;
+  padding: 10px 15px;
 `;
 
 export { _Link as Link };

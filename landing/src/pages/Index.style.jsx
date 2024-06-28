@@ -3,23 +3,24 @@ import styled from "styled-components";
 import { Between, Kbd, Row } from "../kit";
 import Color from "color";
 
+const clamp = (min, max, value) => Math.min(Math.max(value, min), max);
+
 const _BannerImageContainer = styled.div`
   border-radius: 10px;
   border: 1px solid ${({ theme }) => theme.border};
   overflow: hidden;
-  height: 75vh;
   position: relative;
+  opacity: 0.5;
+  filter: sepia(0.5);
+  transition: opacity 0.5s, filter 0.5s;
+  &:hover {
+    opacity: 1;
+    filter: none;
+  }
 `;
 
 const _BannerImage = styled.img`
   width: 100%;
-  position: absolute;
-  top: 0;
-  left: 0;
-  transform: translateY(
-    -${({ scrollPos }) => (scrollPos > 0 ? scrollPos / 5 : 0)}%
-  );
-  z-index: 0;
 `;
 
 const _BannerBrowserMenuBar = styled.div`

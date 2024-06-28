@@ -23,7 +23,7 @@ export const OutageDetailsContainer = styled.div`
   flex-direction: row;
   transition: transform 0.2s;
   height: ${(props) => (props.open ? "auto" : "0")};
-  overflow: hidden;
+  overflow: ${(props) => (props.open ? "visible" : "hidden")};
   @media screen and (max-width: 1000px) {
     flex-direction: column;
   }

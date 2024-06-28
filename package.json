@@ -12,7 +12,8 @@
     "build_basicstatuspage": "cd basic-statuspage && yarn && npm run build",
     "build:fe": "yarn build_basicstatuspage",
     "build:landing": "cd landing && yarn && npm run build",
-    "dev:fe": "cd basic-statuspage && yarn start"
+    "dev:fe": "cd basic-statuspage && yarn start",
+    "dev:landing": "cd landing && yarn start"
   },
   "keywords": [],
   "author": "",

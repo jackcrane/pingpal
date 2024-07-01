@@ -9,15 +9,32 @@ import { prisma } from "./lib/prisma.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+console.log("Starting main");
 main();
 
+console.log("Starting server");
 const app = express();
 
+console.log("Injecting logging middleware");
+app.use((req, res, next) => {
+  console.log(
+    new Date().toISOString(),
+    " | ",
+    req.method,
+    " | ",
+    req.originalUrl
+  );
+  next();
+});
+
+console.log("Injecting CORS & JSON middleware");
 app.use(cors());
 app.use(express.json());
 
+console.log("Setting up static file serving");
 app.use("/assets", express.static("static"));
 
+console.log("Setting up routing");
 app.use((req, res, next) => {
   let host = req.hostname;
   const subdomain = host.split(".")[0];
@@ -40,8 +57,10 @@ app.use((req, res, next) => {
   }
 });
 
+console.log("Creating file router");
 await createRouter(app);
 
+console.log("Setting up catch-all route");
 app.get("*", (req, res) => {
   const host = req.hostname;
   const subdomain = host.split(".")[0];
@@ -55,8 +74,9 @@ app.get("*", (req, res) => {
   }
 });
 
+console.log("Starting server");
 app.listen(process.env.PORT || 2000, () => {
-  console.log("Server is running on port 2000");
+  console.log(`Server is running on port ${process.env.PORT || 2000}`);
 });
 
 // setInterval(async () => {

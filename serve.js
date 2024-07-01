@@ -1,3 +1,6 @@
+console.log(`Heroku requesting port ${process.env.PORT}`);
+console.log(process.env);
+
 import express from "express";
 import createRouter from "express-file-routing";
 import main from "./app.js";

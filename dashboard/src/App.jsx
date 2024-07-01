@@ -5,11 +5,16 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { useFavicon } from "@uidotdev/usehooks";
 import { Register } from "./pages/Register";
 import { Login } from "./pages/Login";
+import { Index } from "./pages/Index";
 
 export default () => {
   useFavicon("/assets/logo-blue.png");
 
   const router = createBrowserRouter([
+    {
+      path: "/",
+      element: <Index />,
+    },
     {
       path: "/register",
       element: <Register />,

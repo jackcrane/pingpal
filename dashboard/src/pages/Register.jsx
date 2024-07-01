@@ -36,6 +36,11 @@ const Half = Styled.div`
   overflow-x: hidden;
 `;
 
+const InputContainer = Styled(Column)`
+  width: 100%;
+  max-width: 500px;
+`;
+
 export const Register = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -76,7 +81,7 @@ export const Register = () => {
       <Header />
       <Row style={{ height: "80vh" }}>
         <Half>
-          <Column style={{ minWidth: 400 }}>
+          <InputContainer>
             <H2>Welcome to PingPal</H2>
             <Spacer height="20px" />
             <label>Your name</label>
@@ -102,6 +107,7 @@ export const Register = () => {
             />
             <Spacer height="20px" />
             {error && <Red>{error}</Red>}
+            <Spacer height="10px" />
             <ActionButton disabled={loading} onClick={handleRegister}>
               {loading ? "Loading..." : "Register"}
             </ActionButton>
@@ -111,7 +117,7 @@ export const Register = () => {
               Terms and conditions
             </TextLink>
             <TextLink to="/legal/privacy-policy">Privacy policy</TextLink>
-          </Column>
+          </InputContainer>
         </Half>
         <Half style={{ justifyContent: "flex-end" }}>
           <Screenshot src={screenshot} alt="screenshot" />

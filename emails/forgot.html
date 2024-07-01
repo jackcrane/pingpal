@@ -19,6 +19,7 @@
         --danger: #dc3545;
         --warning: #ffc107;
         --blue: #007bff;
+        --border: #495057;
       }
       body {
         font-family: "Manrope", sans-serif;
@@ -39,9 +40,28 @@
         letter-spacing: -4px;
         margin: 0;
       }
+      header {
+        display: flex;
+        flex-direction: row;
+        border-bottom: 1px solid var(--border);
+        padding: 15px 0;
+      }
+      header img {
+        height: 32px;
+      }
     </style>
   </head>
   <body>
+    <header>
+      <img
+        src="https://pingpal.online/assets/logo-wordmark.png"
+        alt="PingPal"
+      />
+    </header>
     <h1>Forgot Password</h1>
+    <p>
+      We are sorry you forgot your password! Click this link to create a new
+      password:
+    </p>
   </body>
 </html>

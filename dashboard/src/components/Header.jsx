@@ -3,6 +3,7 @@ import styled from "styled-components";
 import { Between, Container, Link, P, Row, Spacer } from "../kit";
 import logo from "../assets/logo-wordmark.svg";
 import { List, X } from "@phosphor-icons/react";
+import { useAuth } from "../hooks/useAuth";
 
 const HeaderContainer = styled(Container)`
   padding: 0px;
@@ -40,7 +41,8 @@ const PopupMenu = styled.div`
   box-shadow: 0px 0px 0 10000px rgba(0, 0, 0, 0.75);
 `;
 
-export const Header = () => {
+export const Header = (props) => {
+  const { logout } = props;
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
@@ -52,12 +54,24 @@ export const Header = () => {
         <HamburgerMenu onClick={() => setMenuOpen(!menuOpen)}>
           {menuOpen ? <X size={24} /> : <List size={24} />}
         </HamburgerMenu>
-        <Link to="https://pingpal.online">
-          <Row style={{ gap: 5 }}>
-            <P>Powered by</P>
-            <img src={logo} style={{ height: 18 }} />
+        {logout ? (
+          <Row style={{ gap: 10 }}>
+            <Link onClick={() => logout()}>Log Out</Link>
+            <Link to="https://pingpal.online">
+              <Row style={{ gap: 5 }}>
+                <P>Powered by</P>
+                <img src={logo} style={{ height: 18 }} />
+              </Row>
+            </Link>
           </Row>
-        </Link>
+        ) : (
+          <Link to="https://pingpal.online">
+            <Row style={{ gap: 5 }}>
+              <P>Powered by</P>
+              <img src={logo} style={{ height: 18 }} />
+            </Row>
+          </Link>
+        )}
       </Between>
       <PopupMenu open={menuOpen}>
         <Row

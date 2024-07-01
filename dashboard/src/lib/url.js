@@ -3,7 +3,7 @@ export const url = (path) => `${path}`;
 
 export const AuthFetch = async (path, options) => {
   const token = localStorage.getItem("token");
-  const f = await fetch(u(path), {
+  const f = await fetch(url(path), {
     ...options,
     headers: {
       ...options?.headers,

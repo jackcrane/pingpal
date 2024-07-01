@@ -28,12 +28,27 @@ const Screenshot = Styled.img`
     opacity: 1;
     filter: none;
   }
+  @media screen and (max-width: 900px) {
+    display: none;
+  }
 `;
 
 const Half = Styled.div`
   width: 50%;
   display: flex;
   overflow-x: hidden;
+  @media screen and (max-width: 900px) {
+    width: 100%;
+    display: ${(props) => (props.hideOnSmall ? "none" : "flex")};
+  }
+`;
+
+const InputContainer = Styled(Column)`
+  width: 100%;
+  max-width: 500px;
+  @media screen and (max-width: 900px) {
+    margin: auto;
+  }
 `;
 
 export const Login = () => {
@@ -44,7 +59,7 @@ export const Login = () => {
 
   const handleLogin = async () => {
     // Basic validation
-    if (!name || !email || !password) {
+    if (!email || !password) {
       setError("All fields are required");
       return;
     }
@@ -75,7 +90,7 @@ export const Login = () => {
       <Header />
       <Row style={{ height: "80vh" }}>
         <Half>
-          <Column style={{ minWidth: 400 }}>
+          <InputContainer>
             <H2>Log in</H2>
             <Spacer height="20px" />
             <label>Your email</label>
@@ -94,6 +109,7 @@ export const Login = () => {
             />
             <Spacer height="20px" />
             {error && <Red>{error}</Red>}
+            <Spacer height="10px" />
             <ActionButton disabled={loading} onClick={handleLogin}>
               {loading ? "Loading..." : "Login"}
             </ActionButton>
@@ -101,9 +117,9 @@ export const Login = () => {
             <TextLink to="/register">
               Don't have an account? Register here
             </TextLink>
-          </Column>
+          </InputContainer>
         </Half>
-        <Half style={{ justifyContent: "flex-end" }}>
+        <Half style={{ justifyContent: "flex-end" }} hideOnSmall>
           <Screenshot src={screenshot} alt="screenshot" />
         </Half>
       </Row>

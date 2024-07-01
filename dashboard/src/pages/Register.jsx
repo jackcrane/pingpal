@@ -10,6 +10,7 @@ import {
   Row,
   Spacer,
   TextInput,
+  TextLink,
 } from "../kit";
 import Styled from "styled-components";
 import { Header } from "../components/Header";
@@ -75,7 +76,7 @@ export const Register = () => {
       <Header />
       <Row style={{ height: "80vh" }}>
         <Half>
-          <Column>
+          <Column style={{ minWidth: 400 }}>
             <H2>Welcome to PingPal</H2>
             <Spacer height="20px" />
             <label>Your name</label>
@@ -104,6 +105,12 @@ export const Register = () => {
             <ActionButton disabled={loading} onClick={handleRegister}>
               {loading ? "Loading..." : "Register"}
             </ActionButton>
+            <Spacer height="20px" />
+            <TextLink to="/login">Already have an account? Login here</TextLink>
+            <TextLink to="/legal/terms-and-conditions">
+              Terms and conditions
+            </TextLink>
+            <TextLink to="/legal/privacy-policy">Privacy policy</TextLink>
           </Column>
         </Half>
         <Half style={{ justifyContent: "flex-end" }}>

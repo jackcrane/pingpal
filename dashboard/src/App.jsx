@@ -4,6 +4,7 @@ import { ThemeProvider } from "styled-components";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { useFavicon } from "@uidotdev/usehooks";
 import { Register } from "./pages/Register";
+import { Login } from "./pages/Login";
 
 export default () => {
   useFavicon("/assets/logo-blue.png");
@@ -12,6 +13,10 @@ export default () => {
     {
       path: "/register",
       element: <Register />,
+    },
+    {
+      path: "/login",
+      element: <Login />,
     },
   ]);
 

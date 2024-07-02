@@ -6,17 +6,16 @@ import main from "./app.js";
 import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
+import jwt from "jsonwebtoken";
+import { prisma } from "./lib/prisma.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-console.log("Starting main");
 main();
 
-console.log("Starting server");
 const app = express();
 
-console.log("Injecting logging middleware");
 app.use((req, res, next) => {
   console.log(
     new Date().toISOString(),
@@ -28,14 +27,30 @@ app.use((req, res, next) => {
   next();
 });
 
-console.log("Injecting CORS & JSON middleware");
 app.use(cors());
 app.use(express.json());
 
-console.log("Setting up static file serving");
+// Add authentication middleware here
+app.use(async (req, res, next) => {
+  const token = req.headers.authorization?.split(" ")[1];
+  if (!token) return next();
+  // Confirm the JWT
+  const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+  const user = await prisma.user.findUnique({
+    where: {
+      id: decoded.userId,
+    },
+  });
+  delete user.password;
+
+  req.user = user;
+
+  next();
+});
+
 app.use("/assets", express.static("static"));
 
-console.log("Setting up routing");
 app.use((req, res, next) => {
   let host = req.hostname;
   const subdomain = host.split(".")[0];
@@ -58,10 +73,8 @@ app.use((req, res, next) => {
   }
 });
 
-console.log("Creating file router");
 await createRouter(app);
 
-console.log("Setting up catch-all route");
 app.get("*", (req, res) => {
   const host = req.hostname;
   const subdomain = host.split(".")[0];
@@ -75,29 +88,6 @@ app.get("*", (req, res) => {
   }
 });
 
-console.log("Starting server");
 app.listen(process.env.PORT || 2000, () => {
   console.log(`Server is running on port ${process.env.PORT || 2000}`);
 });
-
-// setInterval(async () => {
-//   const metrics = await prisma.$metrics.json();
-//   console.log(
-//     new Date().toISOString(),
-//     " Open pool connections: ",
-//     getFromKey("prisma_pool_connections_open", metrics.counters).value,
-//     " | Active queries: ",
-//     getFromKey("prisma_client_queries_active", metrics.gauges).value,
-//     " | Waiting queries: ",
-//     getFromKey("prisma_client_queries_wait", metrics.gauges).value,
-//     " | Busy connections: ",
-//     getFromKey("prisma_pool_connections_busy", metrics.gauges).value,
-//     " | Idle connections: ",
-//     getFromKey("prisma_pool_connections_idle", metrics.gauges).value
-//   );
-//   // await prisma.$disconnect();
-// }, 1000);
-
-const getFromKey = (key, arr) => {
-  return arr.find((item) => item.key === key);
-};

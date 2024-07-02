@@ -3,3 +3,5 @@ node_modules
 .env
 data-migration
 __cache
+data-migration-utils/export.sh
+migration-2/ingest.sh

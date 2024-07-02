@@ -15,7 +15,7 @@ export const DashboardPage = ({ title, children }) => {
 
       <Row style={{ gap: 10, alignItems: "flex-start", marginTop: 10 }}>
         <Sidenav />
-        <div>{children}</div>
+        <div style={{ width: "100%" }}>{children}</div>
       </Row>
     </Container>
   );

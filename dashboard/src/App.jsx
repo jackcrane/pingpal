@@ -6,6 +6,8 @@ import { useFavicon } from "@uidotdev/usehooks";
 import { Register } from "./pages/Register";
 import { Login } from "./pages/Login";
 import { Index } from "./pages/Index";
+import { WorkspaceList } from "./pages/WorkspaceList";
+import { Workspace } from "./pages/Workspace";
 
 export default () => {
   useFavicon("/assets/logo-blue.png");
@@ -14,6 +16,14 @@ export default () => {
     {
       path: "/",
       element: <Index />,
+    },
+    {
+      path: "/workspace",
+      element: <WorkspaceList />,
+    },
+    {
+      path: "/workspace/:workspaceId",
+      element: <Workspace />,
     },
     {
       path: "/register",

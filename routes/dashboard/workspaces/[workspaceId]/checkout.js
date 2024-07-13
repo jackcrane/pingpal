@@ -75,8 +75,6 @@ export const get = async (req, res) => {
       });
     }
 
-    console.log(session);
-
     res.json({ url: session.url });
   } catch (error) {
     console.error(error);

@@ -8,6 +8,8 @@ import path from "path";
 import { fileURLToPath } from "url";
 import jwt from "jsonwebtoken";
 import { prisma } from "./lib/prisma.js";
+import bodyParser from "body-parser";
+import { stripe } from "./lib/stripe.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -28,6 +30,45 @@ app.use((req, res, next) => {
 });
 
 app.use(cors());
+
+app.post(
+  "/webhook",
+  bodyParser.raw({ type: "application/json" }),
+  async (req, res) => {
+    const payload = req.body;
+    const sig = req.headers["stripe-signature"];
+
+    let event;
+
+    try {
+      event = stripe.webhooks.constructEvent(
+        payload,
+        sig,
+        process.env.STRIPE_WHSEC
+      );
+    } catch (err) {
+      console.error(err);
+      return res.status(400).send(`Webhook Error: ${err.message}`);
+    }
+
+    console.log(event.type);
+    switch (event.type) {
+      case "invoice.payment_failed":
+        const workspace = await prisma.workspace.update({
+          where: {
+            stripeCustomerId: event.data.object.customer,
+          },
+          data: {
+            inGoodPaymentStanding: false,
+          },
+        });
+        break;
+      default:
+        console.log(`Unhandled event type ${event.type}`);
+    }
+  }
+);
+
 app.use(express.json());
 
 // Add authentication middleware here
@@ -35,16 +76,18 @@ app.use(async (req, res, next) => {
   const token = req.headers.authorization?.split(" ")[1];
   if (!token) return next();
   // Confirm the JWT
-  const decoded = jwt.verify(token, process.env.JWT_SECRET);
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-  const user = await prisma.user.findUnique({
-    where: {
-      id: decoded.userId,
-    },
-  });
-  delete user.password;
+    const user = await prisma.user.findUnique({
+      where: {
+        id: decoded.userId,
+      },
+    });
+    delete user.password;
 
-  req.user = user;
+    req.user = user;
+  } catch {}
 
   next();
 });

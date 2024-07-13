@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { AuthFetch } from "../lib/url";
 
-export const useWorkspace = (workspaceId) => {
+export const useWorkspace = (workspaceId, includeServices = false) => {
   const [workspace, setWorkspace] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const fetchWorkspace = async () => {
-    const response = await AuthFetch(`/dashboard/workspaces/${workspaceId}`);
+    const response = await AuthFetch(
+      `/dashboard/workspaces/${workspaceId}?includeServices=${includeServices}`
+    );
     const data = await response.json();
     if (!response.ok) {
       setError(data);

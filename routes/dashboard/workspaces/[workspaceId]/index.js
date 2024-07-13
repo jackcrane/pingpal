@@ -19,6 +19,9 @@ export const get = async (req, res) => {
           },
         },
       },
+      include: {
+        services: req.query.includeServices === "true",
+      },
     });
 
     if (!workspace) {

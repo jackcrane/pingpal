@@ -41,24 +41,12 @@ export const WorkspaceList = () => {
           <Spacer />
           <NegativeMargin>
             {workspaces.map((workspace) => (
-              <Link
-                key={workspace.id}
-                to={`/workspace/${workspace.id}`}
-                style={{ margin: 10 }}
-              >
-                <WorkspaceCard>
-                  <PreviewContainer>
-                    <PreviewIframe
-                      src={`https://${workspace.subdomain}.pingpal.online`}
-                    />
-                  </PreviewContainer>
-                  <Spacer height={"10px"} />
-                  <H3>{workspace.name}</H3>
-                  <P>
-                    <U>{workspace.subdomain}.pingpal.online</U>
-                  </P>
-                </WorkspaceCard>
-              </Link>
+              <WorkspaceBox
+                title={workspace.name}
+                desc={`${workspace.subdomain}.pinpal.online`}
+                linkTarget={`/workspace/${workspace.id}`}
+                iframeSrc={`https://${workspace.subdomain}.pingpal.online`}
+              />
             ))}
           </NegativeMargin>
         </>
@@ -67,7 +55,26 @@ export const WorkspaceList = () => {
   );
 };
 
-const NegativeMargin = styled.div`
+export const WorkspaceBox = ({ linkTarget, iframeSrc, title, desc }) => {
+  return (
+    <Link to={linkTarget} style={{ margin: 10 }}>
+      <WorkspaceCard>
+        <PreviewContainer>
+          <PreviewIframe src={iframeSrc} />
+        </PreviewContainer>
+        <Spacer height={"10px"} />
+        <H3>{title}</H3>
+        {desc && (
+          <P>
+            <U>{desc}</U>
+          </P>
+        )}
+      </WorkspaceCard>
+    </Link>
+  );
+};
+
+export const NegativeMargin = styled.div`
   margin: -10px;
 `;
 
@@ -95,4 +102,8 @@ const PreviewContainer = styled.div`
   overflow: hidden;
   border: 1px solid ${(props) => props.theme.border};
   border-radius: 5px;
+  @media screen and (max-width: 1100px) {
+    width: 250px;
+    padding-top: 70%;
+  }
 `;

@@ -173,6 +173,23 @@ const _Link = styled(Link)`
   transition: background-color 0.2s;
 `;
 
+export const Card = styled.div`
+  text-decoration: none;
+  color: ${({ theme }) => theme.text};
+  padding: 5px;
+  border-radius: 5px;
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 5px;
+  background-color: ${({ theme }) => Color(theme.border).alpha(0.2).string()};
+  border: 1px solid ${({ theme }) => theme.border};
+  &:hover {
+    background-color: ${({ theme }) => Color(theme.border).alpha(0.4).string()};
+  }
+  transition: background-color 0.2s;
+`;
+
 export { _Link as Link };
 
 export const TextLink = styled(Link)`
@@ -223,6 +240,24 @@ export const ActionButton = styled.button`
         ? props.theme.border
         : Color(props.theme.blue).alpha(0.4).toString()};
   }
+`;
+
+export const Button = styled.button`
+  cursor: pointer;
+  text-decoration: none;
+  color: ${({ theme }) => theme.text};
+  padding: 5px;
+  border-radius: 5px;
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 5px;
+  background-color: ${({ theme }) => Color(theme.border).alpha(0.2).string()};
+  border: 1px solid ${({ theme }) => theme.border};
+  &:hover {
+    background-color: ${({ theme }) => Color(theme.border).alpha(0.4).string()};
+  }
+  transition: background-color 0.2s;
 `;
 
 export const ActionLink = styled(_Link)`

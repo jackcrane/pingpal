@@ -49,6 +49,9 @@
       header img {
         height: 32px;
       }
+      .red {
+        color: var(--danger);
+      }
     </style>
   </head>
   <body>
@@ -58,10 +61,14 @@
         alt="PingPal"
       />
     </header>
-    <h1>Forgot Password</h1>
+    <h1>Failed Payment</h1>
     <p>
-      We are sorry you forgot your password! Click this link to create a new
-      password:
+      A payment failed for your subscription. Please update your payment from
+      the PingPal dashboard.
+      <span class="red"
+        >If you do not update your payment information, your statuspage will go
+        offline on $$</span
+      >
     </p>
   </body>
 </html>

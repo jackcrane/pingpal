@@ -4,6 +4,8 @@ import {
   ActionButton,
   ActionLink,
   Between,
+  Button,
+  Card,
   Column,
   H2,
   H3,
@@ -29,6 +31,8 @@ import styled from "styled-components";
 import { useParams } from "react-router-dom";
 import { useWorkspace } from "../hooks/useWorkspace";
 import { Modification } from "../components/Modification";
+import { NegativeMargin, WorkspaceBox } from "./WorkspaceList";
+import { ReorderServices } from "../components/ReorderServices";
 
 export const Workspace = () => {
   const { loading, user } = useAuth({});
@@ -37,7 +41,7 @@ export const Workspace = () => {
     loading: workspaceLoading,
     workspace: remoteWorkspace,
     requestBillingPortal,
-  } = useWorkspace(workspaceId);
+  } = useWorkspace(workspaceId, true);
   const [workspace, setWorkspace] = useState(remoteWorkspace);
 
   useEffect(() => {
@@ -46,6 +50,8 @@ export const Workspace = () => {
 
   const [subscriptionSelectorHovered, setSubscriptionSelectorHovered] =
     useState(false);
+
+  const [reorderingServices, setReorderingServices] = useState(false);
 
   if (loading || workspaceLoading) return <Loading />;
   return (
@@ -138,6 +144,44 @@ export const Workspace = () => {
               Open
             </TextLink>
           </Between>
+          <Spacer />
+          <H3>Services</H3>
+          <Block>
+            <Button onClick={() => setReorderingServices(!reorderingServices)}>
+              {reorderingServices ? "Done" : "Reorder services"}
+            </Button>
+          </Block>
+          <Spacer />
+          {reorderingServices ? (
+            <>
+              <Block>
+                <ReorderServices
+                  services={workspace.services}
+                  onUpdate={(sorted) =>
+                    setWorkspace({
+                      ...workspace,
+                      services: sorted,
+                    })
+                  }
+                />
+              </Block>
+            </>
+          ) : (
+            <NegativeMargin>
+              <Block>
+                {workspace?.services
+                  ?.sort((a, b) => a.sort - b.sort)
+                  ?.map((service) => (
+                    <WorkspaceBox
+                      key={service.id}
+                      iframeSrc={service.domain}
+                      title={service.name}
+                      linkTarget={`/workspace/${workspace.id}/service/${service.id}`}
+                    />
+                  ))}
+              </Block>
+            </NegativeMargin>
+          )}
         </Column>
         <Column style={{ width: 300 }}>
           <H3>Modifications</H3>
@@ -147,3 +191,7 @@ export const Workspace = () => {
     </DashboardPage>
   );
 };
+
+const Block = styled.div`
+  display: block;
+`;

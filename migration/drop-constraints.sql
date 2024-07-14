@@ -1,0 +1,11 @@
+ALTER TABLE "Workspace" DROP CONSTRAINT "Workspace_headerLinkId_fkey";
+ALTER TABLE "Service" DROP CONSTRAINT "Service_workspaceId_fkey";
+ALTER TABLE "Hit" DROP CONSTRAINT "Hit_serviceId_fkey";
+ALTER TABLE "Failure" DROP CONSTRAINT "Failure_outageId_fkey";
+ALTER TABLE "Failure" DROP CONSTRAINT "Failure_serviceId_fkey";
+ALTER TABLE "Outage" DROP CONSTRAINT "Outage_serviceId_fkey";
+ALTER TABLE "Comment" DROP CONSTRAINT "Comment_outageId_fkey";
+ALTER TABLE "Comment" DROP CONSTRAINT "Comment_userId_fkey";
+ALTER TABLE "Link" DROP CONSTRAINT "Link_footerWorkspaceId_fkey";
+ALTER TABLE "_UserToWorkspace" DROP CONSTRAINT "_UserToWorkspace_A_fkey";
+ALTER TABLE "_UserToWorkspace" DROP CONSTRAINT "_UserToWorkspace_B_fkey";

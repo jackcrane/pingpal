@@ -1,8 +1,3 @@
-const cockroach =
-  "postgresql://apps:fJaDhGKuGTuFXc7yURy0KQ@pingpal-production-15362.7tt.aws-us-east-1.cockroachlabs.cloud:26257/pingpal-primary?sslmode=verify-full";
-const heroku =
-  "postgres://uudhktmtgdl31:p3dd09d4ce1204c65fcb09e748b027f1be2fbeb2a25c51ef51e74b072378ea793@c5p86clmevrg5s.cluster-czrs8kj4isg7.us-east-1.rds.amazonaws.com:5432/dfk54j4e5ks262";
-
 import pg from "pg";
 const { Client } = pg;
 

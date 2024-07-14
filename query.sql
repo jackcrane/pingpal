@@ -8,7 +8,7 @@
       FROM
         "Hit"
       WHERE
-        "serviceId" = '89952728-1d34-4ecd-9a22-bada4e5a5ab7'
+        "serviceId" = 'e1674958-6e4c-4dd6-8a24-d899290c0f9b'
         AND "createdAt" >= NOW() - INTERVAL '30 DAY'
       UNION ALL
       SELECT
@@ -19,7 +19,7 @@
       FROM
         "Failure"
       WHERE
-        "serviceId" = '89952728-1d34-4ecd-9a22-bada4e5a5ab7'
+        "serviceId" = 'e1674958-6e4c-4dd6-8a24-d899290c0f9b'
         AND "createdAt" >= NOW() - INTERVAL '30 DAY'
     ),
     TimeBuckets AS (
@@ -82,7 +82,7 @@
 
     SELECT
       bs.bucket,
-      (CAST(bs.success_count AS FLOAT) / bs.total) * 100 AS success_percentage,
+      (CAST(bs.success_count AS FLOAT) / CAST(bs.total AS FLOAT)) * 100 AS success_percentage,
       bs.success_count,
       bs.failure_count,
       bs.total,

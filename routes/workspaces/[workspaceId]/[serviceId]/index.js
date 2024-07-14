@@ -198,7 +198,7 @@ export const get = async (req, res) => {
 
     SELECT
       bs.bucket,
-      (CAST(bs.success_count AS FLOAT) / bs.total) * 100 AS success_percentage,
+      (CAST(bs.success_count AS FLOAT) / CAST(bs.total AS FLOAT)) * 100 AS success_percentage,
       bs.success_count,
       bs.failure_count,
       bs.total,

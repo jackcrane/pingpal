@@ -184,9 +184,8 @@ async function pingService(service) {
 
 async function main() {
   const services = await prisma.$queryRaw`
-    SELECT *
-    FROM "Service"
-    WHERE AGE(NOW(), "lastCheck") > ("checkInterval" || ' seconds')::INTERVAL;
+    SELECT * FROM "Service"
+    WHERE "lastCheck" < NOW() - ("checkInterval" || ' seconds')::INTERVAL;
   `;
   // await prisma.$disconnect();
   for (const service of services) {

@@ -1,0 +1,11 @@
+ALTER TABLE "Workspace" ADD CONSTRAINT "Workspace_headerLinkId_fkey" FOREIGN KEY ("headerLinkId") REFERENCES "Link" ("id");
+ALTER TABLE "Service" ADD CONSTRAINT "Service_workspaceId_fkey" FOREIGN KEY ("workspaceId") REFERENCES "Workspace" ("id");
+ALTER TABLE "Hit" ADD CONSTRAINT "Hit_serviceId_fkey" FOREIGN KEY ("serviceId") REFERENCES "Service" ("id");
+ALTER TABLE "Failure" ADD CONSTRAINT "Failure_outageId_fkey" FOREIGN KEY ("outageId") REFERENCES "Outage" ("id");
+ALTER TABLE "Failure" ADD CONSTRAINT "Failure_serviceId_fkey" FOREIGN KEY ("serviceId") REFERENCES "Service" ("id");
+ALTER TABLE "Outage" ADD CONSTRAINT "Outage_serviceId_fkey" FOREIGN KEY ("serviceId") REFERENCES "Service" ("id");
+ALTER TABLE "Comment" ADD CONSTRAINT "Comment_outageId_fkey" FOREIGN KEY ("outageId") REFERENCES "Outage" ("id");
+ALTER TABLE "Comment" ADD CONSTRAINT "Comment_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id");
+ALTER TABLE "Link" ADD CONSTRAINT "Link_footerWorkspaceId_fkey" FOREIGN KEY ("footerWorkspaceId") REFERENCES "Workspace" ("id");
+ALTER TABLE "_UserToWorkspace" ADD CONSTRAINT "_UserToWorkspace_A_fkey" FOREIGN KEY ("A") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "_UserToWorkspace" ADD CONSTRAINT "_UserToWorkspace_B_fkey" FOREIGN KEY ("B") REFERENCES "Workspace"("id") ON DELETE CASCADE ON UPDATE CASCADE;

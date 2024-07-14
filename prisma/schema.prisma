@@ -3,10 +3,20 @@ generator client {
   previewFeatures = ["metrics"]
 }
 
+// datasource db {
+//   provider          = "postgresql"
+//   url               = env("DATABASE_URL")
+//   shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+// }
+
+// datasource heroku {
+//   provider = "postgresql"
+//   url      = "postgres://uudhktmtgdl31:p3dd09d4ce1204c65fcb09e748b027f1be2fbeb2a25c51ef51e74b072378ea793@c5p86clmevrg5s.cluster-czrs8kj4isg7.us-east-1.rds.amazonaws.com:5432/dfk54j4e5ks262"
+// }
+
 datasource db {
-  provider          = "postgresql"
-  url               = env("DATABASE_URL")
-  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+  provider = "cockroachdb"
+  url    = "postgresql://apps:fJaDhGKuGTuFXc7yURy0KQ@pingpal-production-15362.7tt.aws-us-east-1.cockroachlabs.cloud:26257/pingpal-primary?sslmode=verify-full"
 }
 
 model User {
@@ -35,6 +45,8 @@ model Workspace {
   stripeCustomerId String?
   stripeSubscriptionId String?
 
+  unavailableAfter DateTime?
+
   footerLinks      Link[]
   services         Service[]
   headerLink       Link?     @relation("HeaderLink", fields: [headerLinkId], references: [id], onDelete: NoAction, onUpdate: NoAction)
@@ -54,8 +66,14 @@ model Service {
   checkInterval  Int
   lastCheck      DateTime  @default(now())
   workspaceId    String
+
+  active         Boolean   @default(true)
+
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
+
+  sort           Int?
+
   failures       Failure[]
   hits           Hit[]
   outages        Outage[]

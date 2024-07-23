@@ -65,6 +65,8 @@ export const get = async (req, res) => {
 
     const responseData = await apiResponse.json();
     responseData.timestamp = new Date().toISOString();
+    writeFileSync("query.sql", responseData.query);
+    delete responseData.query;
     writeFileSync(cacheFile, JSON.stringify(responseData, null, 2));
 
     res.json(responseData);

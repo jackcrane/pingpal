@@ -15,7 +15,8 @@
     "dev:fe": "cd basic-statuspage && yarn start",
     "dev:landing": "cd landing && yarn start",
     "dev:dashboard": "cd dashboard && yarn start",
-    "build:dashboard": "cd dashboard && yarn && npm run build"
+    "build:dashboard": "cd dashboard && yarn && npm run build",
+    "deploy:workerStatus": "cd workerStatus && yarn && yarn deploy"
   },
   "keywords": [],
   "author": "",

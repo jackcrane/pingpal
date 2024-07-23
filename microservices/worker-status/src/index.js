@@ -128,7 +128,6 @@ export default {
           COUNT(*) AS total,
           COUNT(CASE WHEN status = 'success' THEN 1 END) AS success_count,
           COUNT(CASE WHEN status = 'failure' THEN 1 END) AS failure_count,
-          STRING_AGG(CASE WHEN status = 'failure' THEN id || '$' || timestamp END, ',') AS failure_details,
           AVG(latency) AS avg_latency,
           MAX(latency) AS max_latency,
           MIN(latency) AS min_latency,
@@ -185,7 +184,6 @@ export default {
         bq.median_latency,
         bq.q1_latency,
         bq.q3_latency,
-        bs.failure_details,
         bs.starting_time,
         bs.ending_time
       FROM
@@ -236,20 +234,12 @@ export default {
 					median_latency: parseFloat(point.median_latency),
 					q1_latency: parseFloat(point.q1_latency),
 					q3_latency: parseFloat(point.q3_latency),
-					failure_details: point.failure_details
-						? point.failure_details.split(',').map((failure) => {
-								const [id, timestamp] = failure.split('$');
-								return {
-									id,
-									timestamp,
-								};
-						  })
-						: [],
 				};
 			}),
 		};
 
 		responseData.timestamp = new Date().toISOString();
+		responseData.query = query;
 		// const cacheResponse = new Response(JSON.stringify(responseData, null, 2), {
 		// 	headers: { 'Content-Type': 'application/json', timestamp: new Date().toISOString() },
 		// });

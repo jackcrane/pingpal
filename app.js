@@ -2,7 +2,7 @@ import { FailureReason, OutageStatus, PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 import fetch from "node-fetch";
 
-const LOG_FAILURE = false;
+const LOG_FAILURE = true;
 
 async function logFailure({
   service,
@@ -85,8 +85,8 @@ async function pingService(service) {
     const serviceId = service.id;
     const updateStartTime = new Date();
     await prisma.$queryRaw`
-    UPDATE "Service" SET "lastCheck" = NOW() WHERE id = ${serviceId};
-  `;
+      UPDATE "Service" SET "lastCheck" = NOW() WHERE id = ${serviceId};
+    `;
     const updateEndTime = new Date();
     // await prisma.$disconnect();
     const startTime = new Date();
@@ -137,7 +137,7 @@ async function pingService(service) {
       });
       return;
     }
-    if (request.status !== service.expectedStatus) {
+    if (parseInt(request.status) !== parseInt(service.expectedStatus)) {
       LOG_FAILURE &&
         console.log(
           `Service ${service.name} is down [Status Code (${request.status})]`

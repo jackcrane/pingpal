@@ -10,7 +10,7 @@ RUN npm install
 
 COPY . .
 
-ENV DATABASE_URL="postgresql://doadmin:AVNS_atgz7H8w0eZn8wpMgtR@pingpal-db-do-user-7960971-0.c.db.ondigitalocean.com:25061/cluster-host?sslmode=require&connection_limit=500&pool_timeout=2"
+ENV DATABASE_URL="postgresql://apps:fJaDhGKuGTuFXc7yURy0KQ@pingpal-production-15362.7tt.aws-us-east-1.cockroachlabs.cloud:26257/pingpal-primary?sslmode=verify-full&connection_limit=100"
 RUN yarn build_db
 RUN yarn build_basicstatuspage
 RUN yarn build:landing

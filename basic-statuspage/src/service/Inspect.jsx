@@ -148,25 +148,6 @@ export const Inspect = ({ bucket, averages }) => {
         <DownTrend />
         <S>Lower than average</S>
       </Row>
-      {/* <H4>Failures</H4>
-      {bucket.failure_count > 0 ? (
-        <>
-          <Ul>
-            {bucket.failure_details.map((f) => (
-              <Li key={f.id}>
-                <P style={{ display: "inline" }}>
-                  {moment(f.timestamp).format("M/D, h:mm:ss a")}
-                </P>
-              </Li>
-            ))}
-          </Ul>
-        </>
-      ) : (
-        <Row style={{ gap: 4 }}>
-          <P>No failures</P>
-          <Smiley />
-        </Row>
-      )} */}
     </Column>
   );
 };

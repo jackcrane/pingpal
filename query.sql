@@ -35,7 +35,6 @@
           COUNT(*) AS total,
           COUNT(CASE WHEN status = 'success' THEN 1 END) AS success_count,
           COUNT(CASE WHEN status = 'failure' THEN 1 END) AS failure_count,
-          STRING_AGG(CASE WHEN status = 'failure' THEN id || '$' || timestamp END, ',') AS failure_details,
           AVG(latency) AS avg_latency,
           MAX(latency) AS max_latency,
           MIN(latency) AS min_latency,
@@ -92,7 +91,6 @@
         bq.median_latency,
         bq.q1_latency,
         bq.q3_latency,
-        bs.failure_details,
         bs.starting_time,
         bs.ending_time
       FROM

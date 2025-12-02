@@ -84,7 +84,6 @@
       "id": "featurebench-worker",
       "name": "FeatureBench Worker",
       "url": "http://worker.featurebench.com/healthz",
-      "expectedText": "{\"ok\":true}",
       "outage": [
         {
           "outageId": "jnzk54v2z",

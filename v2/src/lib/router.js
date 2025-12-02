@@ -6,6 +6,7 @@ import { parse as parseUrl } from "url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE"];
+const CACHE_TTL_MS = 50 * 1000;
 
 const isDynamicSegment = (segment) =>
   segment.startsWith("[") && segment.endsWith("]");
@@ -124,14 +125,49 @@ export class Router {
     this.routes = routes;
     this.configLoader = configLoader;
     this.getRedisClient = getRedisClient;
+    this.cache = new Map();
   }
 
-  json(res, statusCode, data) {
+  json(res, statusCode, data, options = {}) {
     res.statusCode = statusCode;
     res.setHeader("Content-Type", "application/json");
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-    res.end(JSON.stringify(data));
+    const body = JSON.stringify(data);
+    res.end(body);
+
+    const { cacheKey, shouldCache } = options;
+    if (
+      shouldCache &&
+      cacheKey &&
+      statusCode >= 200 &&
+      statusCode < 300
+    ) {
+      this.cache.set(cacheKey, {
+        statusCode,
+        body,
+        expiresAt: Date.now() + CACHE_TTL_MS,
+      });
+    }
+  }
+
+  getCachedResponse(cacheKey) {
+    if (!cacheKey) return null;
+    const cached = this.cache.get(cacheKey);
+    if (!cached) return null;
+    if (cached.expiresAt < Date.now()) {
+      this.cache.delete(cacheKey);
+      return null;
+    }
+    return cached;
+  }
+
+  sendCachedResponse(res, cached) {
+    res.statusCode = cached.statusCode;
+    res.setHeader("Content-Type", "application/json");
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+    res.end(cached.body);
   }
 
   async handle(req, res) {
@@ -149,6 +185,14 @@ export class Router {
 
     const parsedUrl = parseUrl(req.url, true);
     const match = matchRoute(parsedUrl.pathname, req.method, this.routes);
+
+    const shouldCache = req.method === "GET";
+    const cacheKey = shouldCache ? `${req.method}:${req.url}` : null;
+    const cached = this.getCachedResponse(cacheKey);
+    if (cached) {
+      this.sendCachedResponse(res, cached);
+      return;
+    }
 
     if (!match) {
       this.json(res, 404, { error: "Route not found" });
@@ -179,7 +223,11 @@ export class Router {
       query: parsedUrl.query,
       body,
       config,
-      json: (status, payload) => this.json(res, status, payload),
+      json: (status, payload, options = {}) =>
+        this.json(res, status, payload, {
+          cacheKey,
+          shouldCache: shouldCache && !options.skipCache,
+        }),
       redis: this.getRedisClient ? this.getRedisClient() : null,
       req,
       res,

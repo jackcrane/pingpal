@@ -385,7 +385,7 @@ export const Service = ({ serviceId, workspaceId, fullscreen = false }) => {
               <H3>Outages</H3>
               <Spacer />
               {outages?.map((outage) => (
-                <Outage key={outage.id} outage={outage} />
+                <Outage key={outage.id} outage={outage} serviceId={serviceId} />
               ))}
             </>
           ) : (

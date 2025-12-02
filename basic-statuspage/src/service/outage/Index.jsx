@@ -15,6 +15,7 @@ import moment from "moment";
 import { Green, Red } from "../Kit";
 import { CaretRight } from "@phosphor-icons/react";
 import { useTheme } from "styled-components";
+import useOutageDetails from "../../hooks/useOutage";
 
 const combineSequentialFailures = (failures = []) => {
   if (!failures.length) return [];
@@ -51,20 +52,26 @@ const combineSequentialFailures = (failures = []) => {
   return grouped;
 };
 
-const Outage = ({ outage, open: _open = false }) => {
+const Outage = ({ outage, serviceId, open: _open = false }) => {
   const [open, setOpen] = useState(_open);
   const theme = useTheme();
 
+  const { outage: detailedOutage, loading: detailsLoading } = useOutageDetails({
+    outageId: outage?.id,
+    serviceId,
+    enabled: open,
+  });
+
+  const failureSource = detailedOutage?.failures || [];
   const sortedFailures = useMemo(
-    () => combineSequentialFailures(outage?.failures || []),
-    [outage?.failures]
+    () => combineSequentialFailures(failureSource),
+    [failureSource]
   );
 
-  const comments = outage?.comments || [];
+  const comments = detailedOutage?.comments || outage?.comments || [];
 
-  const outageStart = outage?.start || sortedFailures[0]?.start || null;
-  const outageEnd =
-    outage?.end || sortedFailures[sortedFailures.length - 1]?.end || null;
+  const outageStart = detailedOutage?.start || outage?.start || null;
+  const outageEnd = detailedOutage?.end || outage?.end || null;
 
   const switchFailureType = (type) => {
     switch (type) {
@@ -89,7 +96,7 @@ const Outage = ({ outage, open: _open = false }) => {
     }
   };
 
-  if (!outage || !outageStart || !outageEnd || sortedFailures.length === 0) {
+  if (!outage || !outageStart || !outageEnd) {
     return null;
   }
 
@@ -101,19 +108,15 @@ const Outage = ({ outage, open: _open = false }) => {
             <CaretRight size={20} color={theme.subtext} />
           </DropdownButton>
           <P>
-            {moment(outageEnd).format("M/D, h:mm:ss a")} -{" "}
+            {moment(outageEnd).format("M/D, h:mm:ss a")} - {" "}
             {moment(outageStart).format("M/D, h:mm:ss a")}
           </P>
         </Row>
         <span>
           {outage.status === "OPEN" ? (
-            <>
-              <Red>Open</Red>
-            </>
+            <Red>Open</Red>
           ) : (
-            <>
-              <Green>Resolved</Green>
-            </>
+            <Green>Resolved</Green>
           )}
         </span>
       </Between>
@@ -125,30 +128,35 @@ const Outage = ({ outage, open: _open = false }) => {
             <P>Duration</P>
             <Duration start={outageStart} end={outageEnd} />
           </Between>
-          {/* <Between
+          <Between
             style={{
               alignItems: "flex-start",
             }}
           >
-            <P data-f={JSON.stringify(sortedFailures)}>Reason</P>
+            <P>Reason</P>
             <Column
               style={{
                 textAlign: "right",
               }}
             >
-              {sortedFailures.map((f) => (
-                <P key={f.start}>
-                  {moment(f.start).format("h:mm:ss")} -{" "}
-                  {moment(f.end).format("h:mm:ss")}{" "}
-                  <Tooltip
-                    key={f.start}
-                    text={switchFailureType(f.reason)[0]}
-                    message={switchFailureType(f.reason)[1]}
-                  />
-                </P>
-              ))}
+              {detailsLoading ? (
+                <P style={{ opacity: 0.7 }}>Loading details...</P>
+              ) : sortedFailures.length > 0 ? (
+                sortedFailures.map((f) => (
+                  <P key={`${f.start}-${f.end}`}>
+                    {moment(f.start).format("h:mm:ss")} - {" "}
+                    {moment(f.end).format("h:mm:ss")} {" "}
+                    <Tooltip
+                      text={switchFailureType(f.reason)[0]}
+                      message={switchFailureType(f.reason)[1]}
+                    />
+                  </P>
+                ))
+              ) : (
+                <P style={{ opacity: 0.7 }}>No detailed failures available</P>
+              )}
             </Column>
-          </Between> */}
+          </Between>
           <Between>
             <P>Outage ID</P>
             <P>{outage.id}</P>

@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "node --watch src/index.js",
-    "faker": "node src/faker.js"
+    "faker": "node src/faker.js",
+    "fake": "npm run faker -- --id faker --avg 146 --down 5"
   },
   "dependencies": {
     "dotenv": "^16.4.5",

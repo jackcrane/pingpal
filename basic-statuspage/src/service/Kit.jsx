@@ -354,3 +354,8 @@ export const WorkingCard = styled(Card)`
   background-color: ${({ theme }) => Color(theme.success).alpha(0.1).string()};
   border: 1px solid ${({ theme }) => theme.success};
 `;
+
+export const EmptyOutageCard = styled(Card)`
+  background-color: ${({ theme }) => Color(theme.border).alpha(0.2).string()};
+  border: 1px dashed ${({ theme }) => theme.border};
+`;

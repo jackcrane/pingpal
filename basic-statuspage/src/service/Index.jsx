@@ -14,6 +14,7 @@ import {
   Kbd,
   OutageCard,
   WorkingCard,
+  EmptyOutageCard,
   Green,
   Red,
   Yellow,
@@ -30,6 +31,7 @@ import {
   CaretUpDown,
   ArrowSquareRight,
   SquareHalf,
+  ClipboardText,
   ThumbsUp,
   WarningDiamond,
   CaretDown,
@@ -64,9 +66,11 @@ const TimeRangeSelect = styled.select`
   color: ${({ theme }) => theme.text};
   cursor: pointer;
   appearance: none;
-  background-image: linear-gradient(45deg, transparent 50%, ${({ theme }) =>
-          theme.text}
-        50%),
+  background-image: linear-gradient(
+      45deg,
+      transparent 50%,
+      ${({ theme }) => theme.text} 50%
+    ),
     linear-gradient(135deg, ${({ theme }) => theme.text} 50%, transparent 50%);
   background-position: calc(100% - 16px) calc(50% - 2px),
     calc(100% - 10px) calc(50% - 2px);
@@ -267,14 +271,20 @@ export const Service = ({ serviceId, workspaceId, fullscreen = false }) => {
               </Title>
               {fullscreen && (
                 <Row style={{ gap: 8, flexWrap: "wrap" }}>
-                  <TimeRangeSelect value={timeRange} onChange={handleTimeRangeChange}>
+                  <TimeRangeSelect
+                    value={timeRange}
+                    onChange={handleTimeRangeChange}
+                  >
                     {TIME_RANGE_OPTIONS.map((option) => (
                       <option key={option.value} value={option.value}>
                         {option.label}
                       </option>
                     ))}
                   </TimeRangeSelect>
-                  <ChartScaleSelect value={scaleMode} onChange={handleScaleModeChange}>
+                  <ChartScaleSelect
+                    value={scaleMode}
+                    onChange={handleScaleModeChange}
+                  >
                     {SCALE_MODE_OPTIONS.map((option) => (
                       <option key={option.value} value={option.value}>
                         {option.label}
@@ -466,8 +476,7 @@ export const Service = ({ serviceId, workspaceId, fullscreen = false }) => {
                         outage, starting{" "}
                         {activeOutage &&
                           moment(activeOutage.createdAt).fromNow()}
-                        . The team has
-                        been notified!
+                        . The team has been notified!
                       </P>
                     </Column>
                   </Row>
@@ -488,9 +497,32 @@ export const Service = ({ serviceId, workspaceId, fullscreen = false }) => {
               <Spacer />
               <H3>Outages</H3>
               <Spacer />
-              {outages?.map((outage) => (
-                <Outage key={outage.id} outage={outage} serviceId={serviceId} />
-              ))}
+              {outages?.length ? (
+                outages.map((outage) => (
+                  <Outage
+                    key={outage.id}
+                    outage={outage}
+                    serviceId={serviceId}
+                  />
+                ))
+              ) : (
+                <EmptyOutageCard>
+                  <Row style={{ gap: 10 }}>
+                    <ClipboardText
+                      size={32}
+                      color={theme.subtext}
+                      weight="bold"
+                    />
+                    <Column>
+                      <H4>No outages recorded</H4>
+                      <P>
+                        We haven't logged any outages for this service in this
+                        time range.
+                      </P>
+                    </Column>
+                  </Row>
+                </EmptyOutageCard>
+              )}
             </>
           ) : (
             <>

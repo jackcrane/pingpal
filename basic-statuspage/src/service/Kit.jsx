@@ -189,14 +189,14 @@ export const PillHoverHost = styled.div`
   bottom: 0;
   left: 0;
   right: 0;
-  height: 1000px;
-  background: ${(props) =>
-    props.hovered ? "rgba(255, 255, 255, 0.2)" : "rgba(255, 255, 255, 0)"};
+  height: 100000000px;
+  background: ${({ hovered, theme }) =>
+    hovered ? Color(theme.text).alpha(0.08).string() : "transparent"};
   border-width: 1px;
   border-style: solid;
   border-bottom: none;
-  border-color: ${(props) =>
-    props.hovered ? "rgba(255, 255, 255, 0.4)" : "rgba(255, 255, 255, 0)"};
+  border-color: ${({ hovered, theme }) =>
+    hovered ? Color(theme.text).alpha(0.15).string() : "transparent"};
   /* transition: background 0.2s, border-color 0.2s; */
 `;
 

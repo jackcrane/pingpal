@@ -110,6 +110,12 @@
       ]
     },
     {
+      "id": "featurebench",
+      "group": "FeatureBench",
+      "name": "FeatureBench",
+      "url": "https://featurebench.com"
+    },
+    {
       "id": "faker",
       "name": "Faker",
       "url": "https://example.com",

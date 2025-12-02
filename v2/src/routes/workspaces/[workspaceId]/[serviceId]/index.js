@@ -104,7 +104,7 @@ export const GET = async (_req, _res, ctx) => {
       url: service.url,
     },
     success_percentage,
-    averaged_data: hasHits ? averaged_data : null,
+    averaged_data,
     data: buckets,
     outages,
     meta: {

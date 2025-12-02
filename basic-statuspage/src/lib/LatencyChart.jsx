@@ -12,7 +12,7 @@ import { useWindowSize } from "@uidotdev/usehooks";
 
 // min, median, max, q1, q3
 
-export const LatencyChart = ({ data, serviceId, bucketCount }) => {
+export const LatencyChart = ({ data, serviceId, bucketCount, averagedData }) => {
   const actualCount = bucketCount || data.length || 0;
 
   const visibleData = (data || []).filter((d) => !d.hidden);
@@ -27,6 +27,33 @@ export const LatencyChart = ({ data, serviceId, bucketCount }) => {
     ],
     label: `${d.avg_latency ?? 0}ms`,
   }));
+
+  const averagedMedianLatency =
+    typeof averagedData?.avg_median_latency === "number"
+      ? averagedData.avg_median_latency
+      : null;
+  const fallbackMedianLatency = visibleData.reduce(
+    (max, d) => Math.max(max, d?.median_latency ?? 0),
+    0
+  );
+  const medianLatencyBaseline =
+    averagedMedianLatency && averagedMedianLatency > 0
+      ? averagedMedianLatency
+      : fallbackMedianLatency;
+  const safeMedianBaseline =
+    medianLatencyBaseline && medianLatencyBaseline > 0 ? medianLatencyBaseline : 1;
+  const latencyDomainMax = safeMedianBaseline * 2;
+
+  const absoluteMinLatency = visibleData.reduce((min, d) => {
+    const value = d?.min_latency;
+    if (typeof value !== "number") return min;
+    return Math.min(min, value);
+  }, Number.POSITIVE_INFINITY);
+  const safeMinBaseline = Number.isFinite(absoluteMinLatency)
+    ? absoluteMinLatency
+    : 0;
+  const latencyDomainMin =
+    safeMinBaseline > 0 ? Math.max(0, safeMinBaseline * 0.9) : 0;
 
   const lineData = Array.from({ length: actualCount }).map((_, i) => {
     const bucketNumber = i + 1;
@@ -74,7 +101,10 @@ export const LatencyChart = ({ data, serviceId, bucketCount }) => {
       width={width}
       standalone={true}
       padding={4}
-      domain={{ x: [1, Math.max(actualCount, 1)] }}
+      domain={{
+        x: [1, Math.max(actualCount, 1)],
+        y: [latencyDomainMin, latencyDomainMax],
+      }}
       theme={{
         ...VictoryTheme.material,
         boxplot: {
@@ -100,7 +130,7 @@ export const LatencyChart = ({ data, serviceId, bucketCount }) => {
         data={_data}
         boxWidth={getBoxWidth()}
         strokeWidth={getStrokeWidth()}
-        domain={{ y: [10, 2000] }}
+        domain={{ y: [latencyDomainMin, latencyDomainMax] }}
         standalone={true}
         groupComponent={<CanvasGroup />}
         events={[

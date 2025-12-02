@@ -293,6 +293,7 @@ export const Service = ({ serviceId, workspaceId, fullscreen = false }) => {
                   data={chartData}
                   bucketCount={bucketWindow}
                   serviceId={serviceId}
+                  averagedData={service.averaged_data}
                 />
               </div>
             ) : null}

@@ -67,12 +67,12 @@ export const Header = () => {
         <HamburgerMenu onClick={() => setMenuOpen(!menuOpen)}>
           {menuOpen ? <X size={24} /> : <List size={24} />}
         </HamburgerMenu>
-        <Link to="https://pingpal.online">
+        {/* <Link to="https://pingpal.online">
           <Row style={{ gap: 5 }}>
             <P>Powered by</P>
             <img src={logo} style={{ height: 18 }} />
           </Row>
-        </Link>
+        </Link> */}
       </Between>
       <PopupMenu open={menuOpen}>
         <Row

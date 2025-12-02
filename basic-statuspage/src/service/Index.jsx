@@ -42,9 +42,10 @@ import Outage from "./outage/Index";
 import { useFavicon } from "@uidotdev/usehooks";
 import { Tooltip } from "./outage/Kit";
 
-export const Service = ({ serviceId, fullscreen = false }) => {
+export const Service = ({ serviceId, workspaceId, fullscreen = false }) => {
   let globalTimeout = null;
-  const { loading, service } = useService(serviceId);
+  const effectiveWorkspaceId = workspaceId ?? window.workspaceId;
+  const { loading, service } = useService(serviceId, effectiveWorkspaceId);
   const { currentlyActive, outages } = useServiceOutages(serviceId);
 
   const [hovBucket, setHovBucket] = useState(null);
@@ -67,23 +68,45 @@ export const Service = ({ serviceId, fullscreen = false }) => {
   }, [service, currentBucketIndex]);
 
   const handleLeftArrowClick = () => {
+    if (!service?.data?.length) return;
     setCurrentBucketIndex((prevIndex) =>
       prevIndex > 0 ? prevIndex - 1 : service.data.length - 1
     );
   };
 
   const handleRightArrowClick = () => {
+    if (!service?.data?.length) return;
     setCurrentBucketIndex((prevIndex) =>
       prevIndex < service.data.length - 1 ? prevIndex + 1 : 0
     );
   };
 
-  if (loading)
+  if (loading) {
     return (
       <Container fullscreen={fullscreen}>
         <TitleSkeleton />
       </Container>
     );
+  }
+
+  if (!service?.service) {
+    return (
+      <Container fullscreen={fullscreen}>
+        <ServicePageContainer
+          style={{
+            alignItems: "flex-start",
+            gap: 10,
+            borderTopWidth: 1,
+            borderTopStyle: fullscreen ? "solid" : "none",
+            borderTopColor: theme.border,
+            justifyContent: "space-between",
+          }}
+        >
+          <P>Unable to load service data.</P>
+        </ServicePageContainer>
+      </Container>
+    );
+  }
 
   return (
     <Container id={serviceId} fullscreen={fullscreen}>

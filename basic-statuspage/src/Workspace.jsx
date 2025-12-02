@@ -19,7 +19,11 @@ export default ({ workspaceId }) => {
       <Spacer height="50px" />
       <ServiceContainer>
         {workspace.services.map((service) => (
-          <Service key={service.id} serviceId={service.id} />
+          <Service
+            key={service.id}
+            serviceId={service.id}
+            workspaceId={workspaceId}
+          />
         ))}
       </ServiceContainer>
       <Footer />

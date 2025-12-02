@@ -4,8 +4,9 @@ generator client {
 }
 
 datasource db {
-  provider = "cockroachdb"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")   // goes through pgbouncer
+  directUrl = env("DIRECT_URL")     // bypasses pgbouncer for migrations
 }
 
 model User {

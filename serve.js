@@ -84,9 +84,11 @@ app.use(async (req, res, next) => {
         id: decoded.userId,
       },
     });
-    delete user.password;
-
-    req.user = user;
+    if (user) {
+      const sanitizedUser = { ...user, userId: user.id };
+      delete sanitizedUser.password;
+      req.user = sanitizedUser;
+    }
   } catch {}
 
   next();

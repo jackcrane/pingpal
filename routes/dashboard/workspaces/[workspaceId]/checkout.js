@@ -1,18 +1,22 @@
 import { prisma } from "../../../../lib/prisma.js";
 import { stripe } from "../../../../lib/stripe.js";
+import { requireAuth } from "../../utils.js";
 
 export const get = async (req, res) => {
   try {
-    if (!req.user) {
-      return res.status(401).json({ error: "Unauthorized" });
+    const userId = requireAuth(req, res);
+    if (!userId) {
+      return;
     }
+
+    const workspaceId = req.params.workspaceId;
 
     const workspace = await prisma.workspace.findFirst({
       where: {
-        id: req.query.workspaceId,
+        id: workspaceId,
         users: {
           some: {
-            userId: req.user.userId,
+            id: userId,
           },
         },
       },

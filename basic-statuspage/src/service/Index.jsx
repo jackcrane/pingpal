@@ -52,6 +52,7 @@ const TIME_RANGE_OPTIONS = [
 const SCALE_MODE_OPTIONS = [
   { label: "Scaled", value: "scaled" },
   { label: "Absolute", value: "absolute" },
+  { label: "Absolute Log", value: "absolute-log" },
 ];
 
 const TimeRangeSelect = styled.select`

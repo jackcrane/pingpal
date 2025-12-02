@@ -84,7 +84,7 @@
       "id": "featurebench-worker",
       "name": "FeatureBench Worker",
       "url": "http://worker.featurebench.com/healthz",
-      "expectedText": "FeatureBench Worker"
+      "expectedText": "{\"ok\":true}"
     },
     {
       "id": "faker",

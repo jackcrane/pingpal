@@ -72,7 +72,15 @@ export const GET = async (_req, _res, ctx) => {
     serviceId: service.id,
     outageComments: service.outageComments || [],
     minimumDurationMs,
-  });
+  }).map((outage) => ({
+    id: outage.id,
+    status: outage.status,
+    start: outage.start,
+    end: outage.end,
+    createdAt: outage.createdAt,
+    resolvedAt: outage.resolvedAt,
+    comments: outage.comments,
+  }));
 
   const hasHits = Array.isArray(hits) && hits.length > 0;
   const hasBucketData = (buckets || []).some((b) => b.total > 0);

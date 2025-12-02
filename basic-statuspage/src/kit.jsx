@@ -120,9 +120,10 @@ const _LoadingContainer = styled(Container)`
   justify-content: center;
   align-items: center;
   text-align: center;
-  height: 70vh;
-  width: 80%;
-  margin: auto;
+  min-height: 100vh;
+  width: 100%;
+  max-width: none;
+  margin: 0;
 `;
 
 const rotate = keyframes`

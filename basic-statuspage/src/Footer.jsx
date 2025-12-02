@@ -175,9 +175,6 @@ export const Footer = () => {
                 </option>
               ))}
             </ThemeSelect>
-            <ThemeHelperText>
-              Following {mode === "system" ? "system" : resolvedMode} theme
-            </ThemeHelperText>
           </Column>
         </FooterColumn>
       </FooterRow>

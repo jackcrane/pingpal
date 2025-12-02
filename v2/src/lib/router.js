@@ -223,6 +223,7 @@ export class Router {
       query: parsedUrl.query,
       body,
       config,
+      clearCache: () => this.cache.clear(),
       json: (status, payload, options = {}) =>
         this.json(res, status, payload, {
           cacheKey,

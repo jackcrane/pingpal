@@ -80,6 +80,11 @@ const markRun = (serviceId) => {
 };
 
 const runCheck = async (service, defaults, workspaceId) => {
+  if (process.env.SKIP_SERVICE_CHECKS === "true") {
+    console.log("Skipping service check");
+    return;
+  }
+
   const intervalSeconds =
     service.intervalSeconds || defaults.intervalSeconds || 60;
   const timeoutMs = service.timeoutMs || defaults.timeoutMs || 10000;

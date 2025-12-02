@@ -195,6 +195,9 @@ export const loadConfig = () => {
   return refreshLocalConfig();
 };
 
+export const refreshConfigNow = () =>
+  CONFIG_URL ? refreshRemoteConfig() : Promise.resolve(refreshLocalConfig());
+
 export const getWorkspace = (config) => config.workspace;
 
 export const getService = (config, serviceId) =>

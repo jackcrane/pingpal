@@ -11,7 +11,7 @@
     "timeoutMs": 10000,
     "historyLimit": 200000,
     "failureLimit": 50,
-    "criticalOutageSeconds": 180,
+    "criticalOutageSeconds": 120,
     "method": "GET",
     "headers": {}
   },

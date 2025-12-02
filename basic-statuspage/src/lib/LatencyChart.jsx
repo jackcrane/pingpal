@@ -140,10 +140,12 @@ export const LatencyChart = ({
     { value: 90000, label: null },
     { value: 100000, label: formatGuidelineLabel(100000) },
   ];
-  const filteredGuidelines = guidelineValues.filter(
-    ({ value }) =>
-      value >= Math.max(latencyDomainMin, isLogScale ? 0.1 : 0) && value <= latencyDomainMax
-  );
+  const filteredGuidelines = isLogScale
+    ? guidelineValues.filter(
+        ({ value }) =>
+          value >= Math.max(latencyDomainMin, 0.1) && value <= latencyDomainMax
+      )
+    : [];
   const guidelineLines = filteredGuidelines.map(({ value, label }) => ({
     value,
     points: [

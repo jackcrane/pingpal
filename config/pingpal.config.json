@@ -53,7 +53,7 @@
     },
     {
       "id": "paddlefest-volunteer-registration",
-      "name": "PaddleFest Volunteer Registration",
+      "name": "Paddlefest Volunteer Registration",
       "url": "https://volunteer.ohioriverpaddlefest.org"
     },
     {
@@ -76,6 +76,11 @@
       "id": "featurebench-worker",
       "name": "FeatureBench Worker",
       "url": "http://worker.featurebench.com/healthz"
+    },
+    {
+      "id": "faker",
+      "name": "Faker",
+      "url": "https://example.com"
     }
   ]
 }

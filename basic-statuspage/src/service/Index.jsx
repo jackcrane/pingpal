@@ -83,10 +83,17 @@ export const Service = ({ serviceId, workspaceId, fullscreen = false }) => {
     ? [
         ...Array.from({ length: padOffset }).map((_, i) => ({
           ...dummyChartData[i],
+          hidden: true,
+          success_percentage: 0,
+          total: 0,
         })),
-        ...displayData.map((d) => ({ ...d, bucket: d._displayBucket })),
+        ...displayData.map((d) => ({
+          ...d,
+          bucket: d._displayBucket,
+          hidden: false,
+        })),
       ]
-    : dummyChartData;
+    : dummyChartData.map((d) => ({ ...d, hidden: true, success_percentage: 0, total: 0 }));
 
   useFavicon(
     fullscreen
@@ -188,7 +195,11 @@ export const Service = ({ serviceId, workspaceId, fullscreen = false }) => {
           <NoOverflow>
             {fullscreen ? (
               <div style={{ opacity: hasBuckets ? 1 : 0, transition: "opacity 0.2s" }}>
-                <LatencyChart data={chartData} serviceId={serviceId} />
+                <LatencyChart
+                  data={chartData}
+                  bucketCount={targetPillCount}
+                  serviceId={serviceId}
+                />
               </div>
             ) : null}
             <PillRow>

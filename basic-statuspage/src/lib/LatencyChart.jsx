@@ -12,19 +12,29 @@ import { useWindowSize } from "@uidotdev/usehooks";
 
 // min, median, max, q1, q3
 
-export const LatencyChart = ({ data, serviceId }) => {
-  const _data = data.map((d) => {
-    return {
-      x: d.bucket,
-      y: [
-        d.min_latency,
-        d.median_latency,
-        d.max_latency,
-        d.q1_latency,
-        d.q3_latency,
-      ],
-      label: `${d.avg_latency}ms`,
-    };
+export const LatencyChart = ({ data, serviceId, bucketCount }) => {
+  const actualCount = bucketCount || data.length || 0;
+
+  const visibleData = (data || []).filter((d) => !d.hidden);
+  const _data = visibleData.map((d) => ({
+    x: d.bucket,
+    y: [
+      d.min_latency,
+      d.median_latency,
+      d.max_latency,
+      d.q1_latency,
+      d.q3_latency,
+    ],
+    label: `${d.avg_latency ?? 0}ms`,
+  }));
+
+  const lineData = Array.from({ length: actualCount }).map((_, i) => {
+    const bucketNumber = i + 1;
+    const match = (data || []).find((d) => d.bucket === bucketNumber);
+    if (match && !match.hidden) {
+      return { x: bucketNumber, y: match.y ? match.y[1] : match.median_latency };
+    }
+    return { x: bucketNumber, y: null };
   });
 
   const [width, setWidth] = useState(0);
@@ -64,6 +74,7 @@ export const LatencyChart = ({ data, serviceId }) => {
       width={width}
       standalone={true}
       padding={4}
+      domain={{ x: [1, Math.max(actualCount, 1)] }}
       theme={{
         ...VictoryTheme.material,
         boxplot: {
@@ -105,7 +116,7 @@ export const LatencyChart = ({ data, serviceId }) => {
         ]}
       />
       <VictoryLine
-        data={_data.map((d) => ({ x: d.x, y: d.y[1] }))}
+        data={lineData}
         style={{ data: { stroke: theme.blue } }}
         standalone={true}
       />

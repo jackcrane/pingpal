@@ -1,5 +1,5 @@
 import dotenv from "dotenv";
-import { loadConfig } from "./lib/config.js";
+import { initConfig, loadConfig } from "./lib/config.js";
 import { recordHitsBatch, deleteServiceHits } from "./lib/store.js";
 import { closeRedis } from "./lib/redis.js";
 
@@ -85,6 +85,7 @@ const generateHit = ({
 };
 
 const main = async () => {
+  await initConfig();
   const args = parseArgs();
   const serviceId = args.id || args.serviceId;
   const avg = Number(args.avg || args.avgMs || args.response);

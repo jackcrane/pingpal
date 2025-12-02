@@ -3,7 +3,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
 import { loadRoutes, Router } from "./lib/router.js";
-import { loadConfig } from "./lib/config.js";
+import { initConfig, loadConfig } from "./lib/config.js";
 import { getRedisClient } from "./lib/redis.js";
 import { validateEnv } from "./lib/env.js";
 import { startWorker } from "./worker.js";
@@ -12,6 +12,8 @@ dotenv.config();
 validateEnv();
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+await initConfig();
 
 const routes = await loadRoutes({
   routesDir: path.join(__dirname, "routes"),

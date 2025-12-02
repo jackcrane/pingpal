@@ -68,9 +68,12 @@ export const GET = async (_req, _res, ctx) => {
   });
   const criticalSeconds = resolveCriticalSeconds(ctx, service);
   const minimumDurationMs = Math.max(0, criticalSeconds * 1000);
+  const configuredOutages =
+    service.outage || service.outages || service.outageComments || [];
+
   const outages = buildOutages(hits, {
     serviceId: service.id,
-    outageComments: service.outageComments || [],
+    configuredOutages,
     minimumDurationMs,
   }).map((outage) => ({
     id: outage.id,
@@ -80,6 +83,7 @@ export const GET = async (_req, _res, ctx) => {
     createdAt: outage.createdAt,
     resolvedAt: outage.resolvedAt,
     comments: outage.comments,
+    title: outage.title || null,
   }));
 
   const hasHits = Array.isArray(hits) && hits.length > 0;

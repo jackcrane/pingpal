@@ -91,6 +91,7 @@ const Outage = ({ outage, serviceId, open: _open = false }) => {
 
   const outageStart = detailedOutage?.start || outage?.start || null;
   const outageEnd = detailedOutage?.end || outage?.end || null;
+  const outageTitle = detailedOutage?.title || outage?.title || null;
 
   const switchFailureType = (type) => {
     switch (type) {
@@ -119,6 +120,17 @@ const Outage = ({ outage, serviceId, open: _open = false }) => {
     return null;
   }
 
+  const outageStartLabel = outageStart
+    ? moment(outageStart).format("M/D, h:mm:ss a")
+    : null;
+  const outageEndLabel = outageEnd
+    ? moment(outageEnd).format("M/D, h:mm:ss a")
+    : null;
+  const headerLabel =
+    outageTitle && outageTitle.trim().length
+      ? outageTitle
+      : `${outageStartLabel} - ${outageEndLabel}`;
+
   const resolvedDurationLabel =
     outage.status === "OPEN"
       ? null
@@ -131,10 +143,7 @@ const Outage = ({ outage, serviceId, open: _open = false }) => {
           <DropdownButton open={open} onClick={() => setOpen(!open)}>
             <CaretRight size={20} color={theme.subtext} />
           </DropdownButton>
-          <P>
-            {moment(outageStart).format("M/D, h:mm:ss a")} -{" "}
-            {moment(outageEnd).format("M/D, h:mm:ss a")}
-          </P>
+          <P>{headerLabel}</P>
         </Row>
         <span>
           {outage.status === "OPEN" ? (
@@ -155,6 +164,14 @@ const Outage = ({ outage, serviceId, open: _open = false }) => {
           <Between>
             <P>Duration</P>
             <Duration start={outageStart} end={outageEnd} />
+          </Between>
+          <Between>
+            <P>Start</P>
+            <P>{outageStartLabel}</P>
+          </Between>
+          <Between>
+            <P>End</P>
+            <P>{outageEndLabel}</P>
           </Between>
           <Between
             style={{

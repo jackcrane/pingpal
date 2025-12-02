@@ -19,16 +19,23 @@ const outageHash = (serviceId, startTs, endTs) => {
   return base36.slice(0, 9);
 };
 
-const buildConfiguredComments = (entries = [], outageId, fallbackDate) => {
-  if (!outageId || !Array.isArray(entries) || !entries.length) return [];
+const buildConfiguredOutageData = (entries = [], outageId, fallbackDate) => {
+  if (!outageId || !Array.isArray(entries) || !entries.length) {
+    return { comments: [], title: null };
+  }
   const safeFallback = fallbackDate || new Date().toISOString();
-  return entries
-    .filter((entry) => entry && entry.outageId === outageId && entry.comment)
+  const relevantEntries = entries.filter(
+    (entry) => entry && entry.outageId === outageId
+  );
+  if (!relevantEntries.length) {
+    return { comments: [], title: null };
+  }
+
+  const comments = relevantEntries
+    .filter((entry) => entry.comment)
     .map((entry, idx) => {
       const providedUser =
-        typeof entry.user === "object" && entry.user
-          ? entry.user
-          : null;
+        typeof entry.user === "object" && entry.user ? entry.user : null;
       const name = entry.author || providedUser?.name || "PingPal Admin";
       const user = providedUser?.name ? providedUser : { name };
       return {
@@ -38,6 +45,15 @@ const buildConfiguredComments = (entries = [], outageId, fallbackDate) => {
         user,
       };
     });
+
+  const titleEntry = relevantEntries.find(
+    (entry) => typeof entry.title === "string" && entry.title.trim().length > 0
+  );
+
+  return {
+    comments,
+    title: titleEntry ? titleEntry.title : null,
+  };
 };
 
 const latencyMetrics = (latencies) => {
@@ -207,11 +223,15 @@ const deriveReason = (hit) => {
 export const buildOutages = (hits, options = {}) => {
   const {
     serviceId = "service",
+    configuredOutages,
     outageComments = [],
     minimumDurationMs = 3 * 60 * 1000,
   } = options;
   const outages = [];
   let current = null;
+  const manualOutages = Array.isArray(configuredOutages)
+    ? configuredOutages
+    : outageComments;
 
   const finalizeCurrent = (resolutionTimestamp) => {
     if (!current) return;
@@ -232,13 +252,11 @@ export const buildOutages = (hits, options = {}) => {
 
     const fallbackDate =
       current.resolvedAt || new Date(current._lastFailureTimestamp || endTs).toISOString();
-    const configured = buildConfiguredComments(
-      outageComments,
-      current.id,
-      fallbackDate
-    );
+    const { comments: configuredComments, title: configuredTitle } =
+      buildConfiguredOutageData(manualOutages, current.id, fallbackDate);
 
-    current.comments = [...(current.comments || []), ...configured];
+    current.comments = [...(current.comments || []), ...configuredComments];
+    current.title = configuredTitle || current.title || null;
 
     delete current._startTimestamp;
     delete current._lastFailureTimestamp;

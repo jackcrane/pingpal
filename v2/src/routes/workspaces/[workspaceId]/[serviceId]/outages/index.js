@@ -56,9 +56,11 @@ export const GET = async (_req, _res, ctx) => {
   const hits = await fetchHits(serviceId, now - intervalMs, now);
   const criticalSeconds = resolveCriticalSeconds(ctx, service);
   const minimumDurationMs = Math.max(0, criticalSeconds * 1000);
+  const configuredOutages =
+    service.outage || service.outages || service.outageComments || [];
   const outages = buildOutages(hits, {
     serviceId: service.id,
-    outageComments: service.outageComments || [],
+    configuredOutages,
     minimumDurationMs,
   });
 
@@ -73,6 +75,7 @@ export const GET = async (_req, _res, ctx) => {
       status: outage.status,
       createdAt: outage.createdAt,
       resolvedAt: outage.resolvedAt,
+      title: outage.title || null,
     }))
   );
 };

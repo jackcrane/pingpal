@@ -1,7 +1,7 @@
 {
   "workspace": {
     "id": "default",
-    "name": "Crane Digital Platforms Status Page",
+    "name": "Crane Digital Platforms",
     "description": "A status page for tracking services run by Crane Digital Platforms"
   },
   "defaults": {
@@ -82,9 +82,9 @@
       "id": "faker",
       "name": "Faker",
       "url": "https://example.com",
-      "outages": [
+      "outage": [
         {
-          "outageId": "n9lapuxp7",
+          "outageId": "7ohvqjnm5",
           "comment": "Damn intern!",
           "title": "Oops"
         }

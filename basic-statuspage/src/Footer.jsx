@@ -124,7 +124,7 @@ export const Footer = () => {
         <FooterColumn>
           <P>{workspace.name}</P>
           <P>Online since {moment(workspace.createdAt).format("M/D/YYYY")}</P>
-          {workspace.footerLinks.map((link) => (
+          {workspace?.footerLinks?.map((link) => (
             <TextLink to={link.url}>
               <div
                 style={{ display: "inline-block", textDecoration: "underline" }}

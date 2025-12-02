@@ -1,24 +1,23 @@
 import React, { useEffect, useState } from "react";
 import { url } from "../lib/url";
 
-const useSubdomain = (subdomainId) => {
-  const [subdomain, setsubdomain] = useState(null);
+const useSubdomain = () => {
+  const [workspaceId, setWorkspaceId] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchsubdomain = async () => {
-    const _subdomain = new URL(window.location.href).hostname.split(".")[0];
+  const fetchWorkspace = async () => {
     setLoading(true);
-    const f = await fetch(url(`/workspaces?subdomain=${_subdomain}`));
+    const f = await fetch(url(`/workspaces`));
     const data = await f.json();
-    setsubdomain(data);
+    setWorkspaceId(data?.id || "default");
     setLoading(false);
   };
 
   useEffect(() => {
-    fetchsubdomain();
+    fetchWorkspace();
   }, []);
 
-  return { workspaceId: subdomain?.id, loading, refetch: fetchsubdomain };
+  return { workspaceId, loading, refetch: fetchWorkspace };
 };
 
 export default useSubdomain;

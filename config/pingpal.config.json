@@ -1,4 +1,9 @@
 {
+  "workspace": {
+    "id": "default",
+    "name": "PingPal",
+    "description": "Self-hosted uptime board"
+  },
   "defaults": {
     "intervalSeconds": 60,
     "expectedStatus": 200,
@@ -11,10 +16,60 @@
   },
   "services": [
     {
-      "id": "example-service",
-      "name": "Example homepage",
-      "url": "https://example.com/health",
-      "expectedText": "ok"
+      "id": "portfolio",
+      "name": "Portfolio",
+      "url": "https://jackcrane.rocks"
+    },
+    {
+      "id": "fosdata",
+      "name": "fosdata docs",
+      "url": "https://fosdata.pages.dev"
+    },
+    {
+      "id": "fosdata-package",
+      "name": "fosdata Bechdel package",
+      "url": "https://fosdata.pages.dev/data/bechdel.rda",
+      "intervalSeconds": 600
+    },
+    {
+      "id": "eventpilot",
+      "name": "EventPilot homepage",
+      "url": "https://geteventpilot.com"
+    },
+    {
+      "id": "eventpilot-docs",
+      "name": "EventPilot docs",
+      "url": "https://docs.geteventpilot.com"
+    },
+    {
+      "id": "og-image",
+      "name": "OG Image Generator (landing page)",
+      "url": "https://og-image.xyz"
+    },
+    {
+      "id": "og-image-image",
+      "name": "OG Image Generator (image endpoint)",
+      "url": "https://og-image.xyz/og/statuspage/subtitle/og-image.xyz/https/menlo/candybar/black/data.png"
+    },
+    {
+      "id": "paddlefest-volunteer-registration",
+      "name": "PaddleFest Volunteer Registration",
+      "url": "https://volunteer.ohioriverpaddlefest.org"
+    },
+    {
+      "id": "paddlefest-volunteer-admin",
+      "name": "Paddlefest Volunteer Admin",
+      "url": "https://paddlefest-admin-simple.pages.dev/"
+    },
+    {
+      "id": "paddlefest-volunteer-admin-api",
+      "name": "Paddlefest Volunteer API",
+      "url": "https://volunteer.jackcrane.rocks/admin/volunteers"
+    },
+    {
+      "id": "rmp-x-courses",
+      "name": "Rate my Professors x Courses@SLU",
+      "url": "https://rmp-conn.jackcrane.workers.dev/api?name=D.%20Letscher"
     }
   ]
 }

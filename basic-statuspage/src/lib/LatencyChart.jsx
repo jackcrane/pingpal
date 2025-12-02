@@ -12,7 +12,13 @@ import { useWindowSize } from "@uidotdev/usehooks";
 
 // min, median, max, q1, q3
 
-export const LatencyChart = ({ data, serviceId, bucketCount, averagedData }) => {
+export const LatencyChart = ({
+  data,
+  serviceId,
+  bucketCount,
+  averagedData,
+  scaleMode = "scaled",
+}) => {
   const actualCount = bucketCount || data.length || 0;
 
   const visibleData = (data || []).filter((d) => !d.hidden);
@@ -42,7 +48,18 @@ export const LatencyChart = ({ data, serviceId, bucketCount, averagedData }) => 
       : fallbackMedianLatency;
   const safeMedianBaseline =
     medianLatencyBaseline && medianLatencyBaseline > 0 ? medianLatencyBaseline : 1;
-  const latencyDomainMax = safeMedianBaseline * 2;
+  const absoluteMaxLatency = visibleData.reduce(
+    (max, d) => Math.max(max, d?.max_latency ?? 0),
+    0
+  );
+  const scaledMax = safeMedianBaseline * 2;
+  const absoluteBaseline = Math.max(
+    safeMedianBaseline,
+    absoluteMaxLatency || 0
+  );
+  const absoluteMaxWithPadding = Math.max(1, absoluteBaseline) * 1.05;
+  const latencyDomainMax =
+    scaleMode === "absolute" ? absoluteMaxWithPadding : scaledMax;
 
   const absoluteMinLatency = visibleData.reduce((min, d) => {
     const value = d?.min_latency;

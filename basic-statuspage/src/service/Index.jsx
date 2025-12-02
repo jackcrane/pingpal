@@ -49,6 +49,11 @@ const TIME_RANGE_OPTIONS = [
   { label: "3 Hours", value: "3h" },
 ];
 
+const SCALE_MODE_OPTIONS = [
+  { label: "Scaled", value: "scaled" },
+  { label: "Absolute", value: "absolute" },
+];
+
 const TimeRangeSelect = styled.select`
   font-size: 0.85rem;
   padding: 4px 28px 4px 10px;
@@ -80,12 +85,17 @@ const TimeRangeSelect = styled.select`
   }
 `;
 
+const ChartScaleSelect = styled(TimeRangeSelect)`
+  min-width: 140px;
+`;
+
 const DEFAULT_TIME_RANGE = "24h";
 
 export const Service = ({ serviceId, workspaceId, fullscreen = false }) => {
   let globalTimeout = null;
   const effectiveWorkspaceId = workspaceId ?? window.workspaceId;
   const [timeRange, setTimeRange] = useState(DEFAULT_TIME_RANGE);
+  const [scaleMode, setScaleMode] = useState("scaled");
   const { loading, service } = useService(serviceId, effectiveWorkspaceId, {
     interval: timeRange,
   });
@@ -192,6 +202,10 @@ export const Service = ({ serviceId, workspaceId, fullscreen = false }) => {
     setTimeRange(event.target.value);
   };
 
+  const handleScaleModeChange = (event) => {
+    setScaleMode(event.target.value);
+  };
+
   if (loading) {
     return (
       <Container fullscreen={fullscreen}>
@@ -251,13 +265,22 @@ export const Service = ({ serviceId, workspaceId, fullscreen = false }) => {
                 {service.service.name}
               </Title>
               {fullscreen && (
-                <TimeRangeSelect value={timeRange} onChange={handleTimeRangeChange}>
-                  {TIME_RANGE_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </TimeRangeSelect>
+                <Row style={{ gap: 8, flexWrap: "wrap" }}>
+                  <TimeRangeSelect value={timeRange} onChange={handleTimeRangeChange}>
+                    {TIME_RANGE_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </TimeRangeSelect>
+                  <ChartScaleSelect value={scaleMode} onChange={handleScaleModeChange}>
+                    {SCALE_MODE_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </ChartScaleSelect>
+                </Row>
               )}
             </Row>
             <Subtitle>
@@ -294,6 +317,7 @@ export const Service = ({ serviceId, workspaceId, fullscreen = false }) => {
                   bucketCount={bucketWindow}
                   serviceId={serviceId}
                   averagedData={service.averaged_data}
+                  scaleMode={scaleMode}
                 />
               </div>
             ) : null}

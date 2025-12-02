@@ -50,10 +50,53 @@ export const GET = async (_req, _res, ctx) => {
 
   const now = Date.now();
   const hits = await fetchHits(serviceId, now - intervalMs, now);
+  if (!hits || hits.length === 0) {
+    ctx.json(200, {
+      service: {
+        id: service.id,
+        name: service.name,
+        url: service.url,
+      },
+      success_percentage: null,
+      averaged_data: null,
+      data: [],
+      meta: {
+        intervalMs,
+        bucketCount,
+        hits_considered: 0,
+        generatedAt: new Date().toISOString(),
+        message: "No data collected yet for this service",
+      },
+    });
+    return;
+  }
+
   const { buckets, averaged_data, success_percentage } = bucketizeHits(hits, {
     bucketCount,
     intervalMs,
   });
+  const filteredBuckets = (buckets || []).filter((b) => b.total > 0);
+  const hasBucketData = filteredBuckets.length > 0;
+  if (!hasBucketData) {
+    ctx.json(200, {
+      service: {
+        id: service.id,
+        name: service.name,
+        url: service.url,
+      },
+      success_percentage: null,
+      averaged_data: null,
+      data: [],
+      meta: {
+        intervalMs,
+        bucketCount,
+        hits_considered: hits.length,
+        generatedAt: new Date().toISOString(),
+        message: "No bucket data available for this service",
+      },
+    });
+    return;
+  }
 
   ctx.json(200, {
     service: {
@@ -63,7 +106,7 @@ export const GET = async (_req, _res, ctx) => {
     },
     success_percentage,
     averaged_data,
-    data: buckets,
+    data: filteredBuckets,
     meta: {
       intervalMs,
       bucketCount,

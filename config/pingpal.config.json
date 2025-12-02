@@ -69,7 +69,13 @@
     {
       "id": "rmp-x-courses",
       "name": "Rate my Professors x Courses@SLU",
-      "url": "https://rmp-conn.jackcrane.workers.dev/api?name=D.%20Letscher"
+      "url": "https://rmp-conn.jackcrane.workers.dev/api?name=D.%20Letscher",
+      "expectedText": "VGVhY2hlci0zMjUwMjQ="
+    },
+    {
+      "id": "featurebench-worker",
+      "name": "FeatureBench Worker",
+      "url": "http://worker.featurebench.com/healthz"
     }
   ]
 }

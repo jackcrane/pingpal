@@ -39,6 +39,14 @@ const latencyMetrics = (latencies) => {
 };
 
 export const bucketizeHits = (hits, { bucketCount, intervalMs }) => {
+  if (!hits || hits.length === 0) {
+    return {
+      buckets: [],
+      averaged_data: null,
+      success_percentage: null,
+    };
+  }
+
   const buckets = Array.from({ length: bucketCount }).map((_, idx) => ({
     bucket: idx + 1,
     success_count: 0,

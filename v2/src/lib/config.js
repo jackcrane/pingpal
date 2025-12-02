@@ -22,16 +22,7 @@ const readConfigFromDisk = () => {
     cachedMtime = stat.mtimeMs;
     return parsed;
   } catch (err) {
-    console.error("Unable to read config file", DEFAULT_CONFIG_PATH, err);
-    return {
-      workspace: {
-        id: "default",
-        name: "PingPal",
-        description: "Default workspace",
-      },
-      defaults: {},
-      services: [],
-    };
+    throw new Error(`Unable to read config file at ${DEFAULT_CONFIG_PATH}: ${err.message}`);
   }
 };
 

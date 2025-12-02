@@ -50,6 +50,43 @@ export const Service = ({ serviceId, workspaceId, fullscreen = false }) => {
 
   const [hovBucket, setHovBucket] = useState(null);
   const [currentBucketIndex, setCurrentBucketIndex] = useState(0);
+  const hasData = service?.data && service.data.length > 0;
+  const hasBuckets = hasData && service.data.some((d) => d.total > 0);
+  const targetPillCount = fullscreen ? 100 : 60;
+  const padOffset = Math.max(0, targetPillCount - (service?.data?.length || 0));
+  const placeholderHeights = Array.from({ length: targetPillCount }).map(
+    (_, i) => 14 + ((i * 19) % (fullscreen ? 75 : 40))
+  );
+  const displayData = hasBuckets
+    ? service.data.map((d, i) => ({
+        ...d,
+        _displayBucket: padOffset + i + 1,
+        _originalIndex: i,
+      }))
+    : [];
+  const dummyChartData = Array.from({ length: targetPillCount }).map(
+    (_, i) => ({
+      bucket: i + 1,
+      min_latency: 1,
+      max_latency: 1,
+      median_latency: 1,
+      q1_latency: 1,
+      q3_latency: 1,
+      avg_latency: 1,
+      success_percentage: 100,
+      starting_time: new Date(Date.now() - (targetPillCount - i) * 60000),
+      ending_time: new Date(Date.now() - (targetPillCount - i - 1) * 60000),
+      total: 1,
+    })
+  );
+  const chartData = hasBuckets
+    ? [
+        ...Array.from({ length: padOffset }).map((_, i) => ({
+          ...dummyChartData[i],
+        })),
+        ...displayData.map((d) => ({ ...d, bucket: d._displayBucket })),
+      ]
+    : dummyChartData;
 
   useFavicon(
     fullscreen
@@ -62,8 +99,12 @@ export const Service = ({ serviceId, workspaceId, fullscreen = false }) => {
   const theme = useTheme();
 
   useEffect(() => {
-    if (service && service.data.length > 0) {
-      setHovBucket(service.data[currentBucketIndex]);
+    if (service?.data?.length > 0) {
+      const safeIndex = Math.min(
+        Math.max(currentBucketIndex, 0),
+        service.data.length - 1
+      );
+      setHovBucket(service.data[safeIndex]);
     }
   }, [service, currentBucketIndex]);
 
@@ -123,7 +164,11 @@ export const Service = ({ serviceId, workspaceId, fullscreen = false }) => {
         <GraphsContainer fullscreen={fullscreen}>
           <Between>
             <Title>{service.service.name}</Title>
-            <Subtitle>{service.success_percentage.toFixed(2)}%</Subtitle>
+            <Subtitle>
+              {service.success_percentage != null
+                ? `${service.success_percentage.toFixed(2)}%`
+                : "No data yet"}
+            </Subtitle>
           </Between>
           <Spacer height={"5px"} />
           {fullscreen ? (
@@ -142,43 +187,72 @@ export const Service = ({ serviceId, workspaceId, fullscreen = false }) => {
           <Spacer height={"10px"} />
           <NoOverflow>
             {fullscreen ? (
-              <LatencyChart data={service.data || []} serviceId={serviceId} />
-            ) : (
-              <></>
-            )}
+              <div style={{ opacity: hasBuckets ? 1 : 0, transition: "opacity 0.2s" }}>
+                <LatencyChart data={chartData} serviceId={serviceId} />
+              </div>
+            ) : null}
             <PillRow>
-              {(service.data || []).map((d, index) => (
-                <StatusPill
-                  key={d.bucket}
-                  bucketNumber={d.bucket}
-                  uptime={d.success_percentage}
-                  fullscreen={fullscreen}
-                  labelText={moment(d.ending_time).format("M/D") + " ↓"}
-                  showLabel={
-                    index > 0
-                      ? moment(d.ending_time)
-                          .startOf("day")
-                          .diff(
-                            moment(service.data[index - 1].ending_time).startOf(
-                              "day"
-                            )
-                          ) !== 0 && moment(d.ending_time).date() % 2 === 0
-                      : false
+              {(() => {
+                const pills = hasBuckets
+                  ? [
+                      ...Array.from({ length: padOffset }).fill(null),
+                      ...displayData,
+                    ]
+                  : Array.from({ length: targetPillCount }).fill(null);
+                return pills.slice(0, targetPillCount).map((d, index) => {
+                  if (d) {
+                    return (
+                      <StatusPill
+                        key={d._displayBucket || d.bucket}
+                        bucketNumber={d._displayBucket || d.bucket}
+                        uptime={d.success_percentage}
+                        fullscreen={fullscreen}
+                        labelText={moment(d.ending_time).format("M/D") + " ↓"}
+                        showLabel={
+                          index > 0
+                            ? moment(d.ending_time)
+                                .startOf("day")
+                                .diff(
+                                  moment(
+                                    (service.data[d._originalIndex - 1] ||
+                                      d).ending_time
+                                  ).startOf("day")
+                                ) !== 0 && moment(d.ending_time).date() % 2 === 0
+                            : false
+                        }
+                      >
+                        {fullscreen ? (
+                          <PillHoverHostController
+                            bucket={d}
+                            activeBucket={hovBucket}
+                            index={d._originalIndex}
+                            currentBucketIndex={currentBucketIndex}
+                            setCurrentBucketIndex={setCurrentBucketIndex}
+                          />
+                        ) : null}
+                      </StatusPill>
+                    );
                   }
-                >
-                  {fullscreen ? (
-                    <PillHoverHostController
-                      bucket={d}
-                      activeBucket={hovBucket}
-                      index={index}
-                      currentBucketIndex={currentBucketIndex}
-                      setCurrentBucketIndex={setCurrentBucketIndex}
+                  const height = placeholderHeights[index % placeholderHeights.length];
+                  return (
+                    <div
+                      key={`placeholder-${index}`}
+                      style={{
+                        height: Math.max(8, height),
+                        width: fullscreen ? 10 : 4,
+                        marginRight: fullscreen ? 5 : 3,
+                        backgroundColor: "transparent",
+                        borderRadius: 12,
+                        opacity: 0,
+                        border: `1px solid transparent`,
+                        visibility: "hidden",
+                      }}
                     />
-                  ) : null}
-                </StatusPill>
-              ))}
+                  );
+                });
+              })()}
             </PillRow>
-            {fullscreen && (
+            {fullscreen && hasBuckets && (
               <>
                 <Spacer height="65px" />
                 <Row style={{ gap: 10 }}>
@@ -233,6 +307,13 @@ export const Service = ({ serviceId, workspaceId, fullscreen = false }) => {
             )}
             <Spacer />
           </NoOverflow>
+
+          {!hasData && (
+            <>
+              <Spacer />
+              <P>No datapoints recorded yet for this service.</P>
+            </>
+          )}
 
           {fullscreen ? (
             <>

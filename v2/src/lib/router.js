@@ -165,11 +165,20 @@ export class Router {
       }
     }
 
+    let config;
+    try {
+      config = this.configLoader();
+    } catch (err) {
+      console.error("Configuration load error", err.message);
+      this.json(res, 500, { error: "Configuration error" });
+      return;
+    }
+
     const ctx = {
       params: match.params,
       query: parsedUrl.query,
       body,
-      config: this.configLoader(),
+      config,
       json: (status, payload) => this.json(res, status, payload),
       redis: this.getRedisClient ? this.getRedisClient() : null,
       req,

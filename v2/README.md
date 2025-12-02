@@ -1,12 +1,12 @@
 # PingPal Backend v2
 
-Self-hosted backend for the basic-statuspage frontend. Configuration lives in `config/pingpal.config.json` and live datapoints are stored in Redis (with an in-memory fallback for local development).
+Self-hosted backend for the basic-statuspage frontend. Configuration lives in `config/pingpal.config.json` and live datapoints are stored in Redis.
 
 ## Running
 
 - Install deps: `cd v2 && npm install`
 - Start dev server: `npm run dev` (default port `2000`)
-- Set env: `REDIS_URL` (or `REDIS_TLS_URL`), optional `PORT`, optional `CONFIG_PATH`
+- Required env: `REDIS_URL`, `JWT_SECRET` (no fallback). Optional: `PORT`, `CONFIG_PATH`.
 
 ## File-based routes
 
@@ -18,6 +18,11 @@ Routes live in `src/routes` and are discovered automatically. Examples:
 - `GET /workspaces/:workspaceId/:serviceId/outages` → derived outages (`includeClosed`)
 - `GET /workspaces/:workspaceId/:serviceId/outages/:outageId` → outage detail (`includeFailures`, `includeComments`)
 - `POST /hits` → record a datapoint `{ serviceId, statusCode?, latencyMs?, ok? }`
+
+## Worker
+
+- A cron-driven worker (`src/worker.js`) runs every second and dispatches checks per service using their `intervalSeconds` (or default).
+- Each check fetches the service URL with timeouts/headers/methods from config, computes status/latency health, and records hits into Redis respecting history limits.
 
 ## Data model
 

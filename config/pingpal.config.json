@@ -90,6 +90,11 @@
           "title": "Requestor outage"
         }
       ]
+    },
+    {
+      "id": "orw-api",
+      "name": "ORW API",
+      "url": "https://orw-api.jackcrane.rocks/weather"
     }
   ]
 }

@@ -186,6 +186,7 @@ export const buildOutages = (hits) => {
             id: `outage-${hit.timestamp}`,
             createdAt: new Date(hit.timestamp).toISOString(),
             failures: [],
+            comments: [],
           };
         }
         current.failures.push({

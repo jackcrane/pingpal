@@ -1,4 +1,4 @@
-import { bucketizeHits } from "../../../../lib/analytics.js";
+import { bucketizeHits, buildOutages } from "../../../../lib/analytics.js";
 import { fetchHits } from "../../../../lib/store.js";
 
 const ensureWorkspace = (ctx) => {
@@ -58,6 +58,7 @@ export const GET = async (_req, _res, ctx) => {
     intervalMs,
     rangeEndMs,
   });
+  const outages = buildOutages(hits);
 
   const hasHits = Array.isArray(hits) && hits.length > 0;
   const hasBucketData = (buckets || []).some((b) => b.total > 0);
@@ -79,6 +80,7 @@ export const GET = async (_req, _res, ctx) => {
     success_percentage,
     averaged_data: hasHits ? averaged_data : null,
     data: buckets,
+    outages,
     meta: {
       intervalMs,
       bucketCount,

@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Between, Column, H4, P, Row, Spacer } from "../../kit";
-import useOutage from "../../hooks/useOutage";
 import {
   Card,
   DropdownButton,
@@ -13,30 +12,62 @@ import {
 } from "./Kit";
 import { Comment } from "./Comment";
 import moment from "moment";
-import { BucketSelectorButton, Green, Red } from "../Kit";
-import { CaretCircleRight, CaretRight } from "@phosphor-icons/react";
+import { Green, Red } from "../Kit";
+import { CaretRight } from "@phosphor-icons/react";
 import { useTheme } from "styled-components";
 
-const Outage = ({ outageId, serviceId, open: _open = false }) => {
-  const { loading, outage, sortedFailures } = useOutage({
-    outageId,
-    serviceId,
-    includeFailures: true,
-    includeComments: true,
-  });
-  const [outageDuration, setOutageDuration] = useState(0);
+const combineSequentialFailures = (failures = []) => {
+  if (!failures.length) return [];
 
+  const ordered = [...failures].sort(
+    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+  );
+
+  const grouped = [];
+  let currentGroup = {
+    start: ordered[0].createdAt,
+    end: ordered[0].createdAt,
+    reason: ordered[0].reason,
+    failures: [ordered[0].id],
+  };
+
+  for (let i = 1; i < ordered.length; i++) {
+    const failure = ordered[i];
+    if (failure.reason === currentGroup.reason) {
+      currentGroup.end = failure.createdAt;
+      currentGroup.failures.push(failure.id);
+    } else {
+      grouped.push(currentGroup);
+      currentGroup = {
+        start: failure.createdAt,
+        end: failure.createdAt,
+        reason: failure.reason,
+        failures: [failure.id],
+      };
+    }
+  }
+
+  grouped.push(currentGroup);
+  return grouped;
+};
+
+const Outage = ({ outage, open: _open = false }) => {
   const [open, setOpen] = useState(_open);
+  const theme = useTheme();
 
-  useEffect(() => {
-    if (!outage) return;
+  const sortedFailures = useMemo(
+    () => combineSequentialFailures(outage?.failures || []),
+    [outage?.failures]
+  );
+
+  const outageDuration = useMemo(() => {
+    if (!sortedFailures.length) return 0;
     const startTime = sortedFailures[0].start;
     const endTime = sortedFailures[sortedFailures.length - 1].end;
     const diff = moment(endTime).diff(moment(startTime));
     const duration = moment.duration(diff);
-    const elapsedSeconds = duration.asSeconds();
-    setOutageDuration(elapsedSeconds);
-  }, [outage]);
+    return duration.asSeconds();
+  }, [sortedFailures]);
 
   const switchFailureType = (type) => {
     switch (type) {
@@ -61,20 +92,8 @@ const Outage = ({ outageId, serviceId, open: _open = false }) => {
     }
   };
 
-  const theme = useTheme();
-
-  if (outageDuration === 0) {
+  if (!outage || outageDuration === 0 || sortedFailures.length === 0) {
     return null;
-  }
-
-  if (loading || !outage) {
-    return (
-      <Card>
-        <Between>
-          <H4 style={{ opacity: 0.5 }}>Loading...</H4>
-        </Between>
-      </Card>
-    );
   }
 
   return (

@@ -80,7 +80,13 @@
     {
       "id": "faker",
       "name": "Faker",
-      "url": "https://example.com"
+      "url": "https://example.com",
+      "outageComments": [
+        {
+          "outageId": "agsyt8pu9",
+          "comment": "Damn intern!"
+        }
+      ]
     }
   ]
 }

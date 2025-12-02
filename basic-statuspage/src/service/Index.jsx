@@ -36,7 +36,6 @@ import {
 } from "@phosphor-icons/react";
 import { Inspect } from "./Inspect";
 import { PillHoverHostController } from "./PillHoverHostController";
-import useServiceOutages from "../hooks/useServiceOutages";
 import moment from "moment";
 import Outage from "./outage/Index";
 import { useFavicon } from "@uidotdev/usehooks";
@@ -46,7 +45,9 @@ export const Service = ({ serviceId, workspaceId, fullscreen = false }) => {
   let globalTimeout = null;
   const effectiveWorkspaceId = workspaceId ?? window.workspaceId;
   const { loading, service } = useService(serviceId, effectiveWorkspaceId);
-  const { currentlyActive, outages } = useServiceOutages(serviceId);
+  const outages = service?.outages || [];
+  const activeOutage = outages.find((outage) => outage.status === "OPEN");
+  const currentlyActive = Boolean(activeOutage);
 
   const [hovBucket, setHovBucket] = useState(null);
   const [currentBucketIndex, setCurrentBucketIndex] = useState(0);
@@ -359,7 +360,9 @@ export const Service = ({ serviceId, workspaceId, fullscreen = false }) => {
                       <P>
                         {service.service.name} is currently experiencing an
                         outage, starting{" "}
-                        {moment(outages[0].createdAt).fromNow()}. The team has
+                        {activeOutage &&
+                          moment(activeOutage.createdAt).fromNow()}
+                        . The team has
                         been notified!
                       </P>
                     </Column>
@@ -382,17 +385,12 @@ export const Service = ({ serviceId, workspaceId, fullscreen = false }) => {
               <H3>Outages</H3>
               <Spacer />
               {outages?.map((outage) => (
-                <Outage
-                  key={outage.id}
-                  outageId={outage.id}
-                  serviceId={serviceId}
-                  workspaceId={workspaceId}
-                />
+                <Outage key={outage.id} outage={outage} />
               ))}
             </>
           ) : (
             <>
-              {currentlyActive ? (
+              {currentlyActive && activeOutage ? (
                 <OutageCard style={{ padding: 2, fontSize: "0.8rem" }}>
                   <Row style={{ gap: 6 }}>
                     <WarningDiamond
@@ -400,12 +398,12 @@ export const Service = ({ serviceId, workspaceId, fullscreen = false }) => {
                       color={theme.danger}
                       weight="bold"
                     />
-                    <P>Outage since {moment(outages[0].createdAt).fromNow()}</P>
+                    <P>
+                      Outage since {moment(activeOutage.createdAt).fromNow()}
+                    </P>
                   </Row>
                 </OutageCard>
-              ) : (
-                <></>
-              )}
+              ) : null}
             </>
           )}
         </GraphsContainer>

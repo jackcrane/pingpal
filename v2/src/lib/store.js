@@ -1,5 +1,13 @@
 import { getRedisClient } from "./redis.js";
 
+const trimHistory = async (client, key, historyLimit) => {
+  if (!historyLimit) return;
+  const excess = (await client.zCard(key)) - historyLimit;
+  if (excess > 0) {
+    await client.zRemRangeByRank(key, 0, excess - 1);
+  }
+};
+
 export const recordHit = async (serviceId, hit, historyLimit = 5000) => {
   const payload = {
     ...hit,
@@ -12,12 +20,7 @@ export const recordHit = async (serviceId, hit, historyLimit = 5000) => {
   await client.zAdd(key, [
     { score: payload.timestamp, value: JSON.stringify(payload) },
   ]);
-  if (historyLimit) {
-    const excess = (await client.zCard(key)) - historyLimit;
-    if (excess > 0) {
-      await client.zRemRangeByRank(key, 0, excess - 1);
-    }
-  }
+  await trimHistory(client, key, historyLimit);
 
   return payload;
 };
@@ -97,11 +100,7 @@ export const recordHitsBatch = async (serviceId, hits, historyLimit = null) => {
     }))
   );
 
-  if (historyLimit) {
-    // Trim oldest entries when a history limit is provided.
-    multi.zRemRangeByRank(zsetKey, 0, -historyLimit - 1);
-  }
-
   await multi.exec();
+  await trimHistory(redis, zsetKey, historyLimit);
   return payloads;
 };

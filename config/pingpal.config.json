@@ -9,7 +9,7 @@
     "expectedStatus": 200,
     "maxLatencyMs": 3000,
     "timeoutMs": 10000,
-    "historyLimit": 200,
+    "historyLimit": 200000,
     "failureLimit": 50,
     "method": "GET",
     "headers": {}

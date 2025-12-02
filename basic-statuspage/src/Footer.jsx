@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 import styled from "styled-components";
 import {
   Between,
@@ -13,6 +13,7 @@ import {
 import useWorkspace from "./hooks/useWorkspace";
 import logo from "./assets/logo-wordmark.svg";
 import moment from "moment";
+import { ThemePreferenceContext } from "./theme";
 import {
   Books,
   CreditCard,
@@ -55,6 +56,25 @@ const FooterColumn = styled(Column)`
   @media screen and (max-width: 700px) {
     width: 50%;
   }
+`;
+
+const ThemeSelect = styled.select`
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid ${(p) => p.theme.border};
+  background-color: ${(p) => p.theme.bg};
+  color: ${(p) => p.theme.text};
+  font-family: inherit;
+`;
+
+const ThemeLabel = styled(P)`
+  color: ${(p) => p.theme.text};
+  font-weight: 600;
+`;
+
+const ThemeHelperText = styled(P)`
+  font-size: 0.85rem;
+  color: ${(p) => p.theme.subtext};
 `;
 
 // GITHUB
@@ -115,6 +135,15 @@ export const FooterLinkIcon = ({ icon }) => {
 
 export const Footer = () => {
   const { workspace, loading } = useWorkspace(window.workspaceId);
+  const { mode, resolvedMode, setMode } = useContext(ThemePreferenceContext);
+  const handleThemeChange = (event) => {
+    setMode(event.target.value);
+  };
+  const themeOptions = [
+    { value: "system", label: "System" },
+    { value: "light", label: "Light" },
+    { value: "dark", label: "Dark" },
+  ];
 
   if (loading) return null;
 
@@ -124,7 +153,7 @@ export const Footer = () => {
         <FooterColumn>
           <P>{workspace.name}</P>
           {workspace?.footerLinks?.map((link) => (
-            <TextLink to={link.url}>
+            <TextLink to={link.url} key={`${link.icon}-${link.url}`}>
               <div
                 style={{ display: "inline-block", textDecoration: "underline" }}
               >
@@ -135,6 +164,21 @@ export const Footer = () => {
               </div>
             </TextLink>
           ))}
+        </FooterColumn>
+        <FooterColumn>
+          <Column gap="8px">
+            <ThemeLabel>Theme</ThemeLabel>
+            <ThemeSelect value={mode} onChange={handleThemeChange}>
+              {themeOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </ThemeSelect>
+            <ThemeHelperText>
+              Following {mode === "system" ? "system" : resolvedMode} theme
+            </ThemeHelperText>
+          </Column>
         </FooterColumn>
       </FooterRow>
       <Spacer height="20px" />

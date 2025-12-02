@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Container, H1, Loading, Spacer } from "./kit";
 import { Service } from "./service/Index";
 import Workspace from "./Workspace";
@@ -7,14 +7,91 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import ServicePage from "./service/Page";
 import useSubdomain from "./hooks/useSubdomain";
 import { useFavicon } from "@uidotdev/usehooks";
+import {
+  ThemePreferenceContext,
+  darkTheme,
+  lightTheme,
+} from "./theme";
+
+const THEME_STORAGE_KEY = "themePreference";
+const THEME_COOKIE_KEY = "themePreference";
+
+const isValidPreference = (value) =>
+  ["light", "dark", "system"].includes(value);
+
+const getCookiePreference = () => {
+  if (typeof document === "undefined") return null;
+  const cookies = document.cookie?.split(";") || [];
+  for (const cookie of cookies) {
+    const [rawKey, rawValue] = cookie.split("=");
+    if (rawKey && rawKey.trim() === THEME_COOKIE_KEY) {
+      return decodeURIComponent(rawValue || "").trim();
+    }
+  }
+  return null;
+};
+
+const persistThemePreference = (mode) => {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(THEME_STORAGE_KEY, mode);
+  if (typeof document !== "undefined") {
+    const oneYear = 60 * 60 * 24 * 365;
+    document.cookie = `${THEME_COOKIE_KEY}=${mode};path=/;max-age=${oneYear}`;
+  }
+};
 
 export default () => {
   const { loading, workspaceId } = useSubdomain();
   useFavicon("/assets/logo-blue.png");
+  const [themeMode, setThemeMode] = useState(() => {
+    if (typeof window === "undefined") return "system";
+    const cookiePref = getCookiePreference();
+    if (isValidPreference(cookiePref)) return cookiePref;
+    const stored = localStorage.getItem(THEME_STORAGE_KEY);
+    return isValidPreference(stored) ? stored : "system";
+  });
+  const [prefersDark, setPrefersDark] = useState(() => {
+    if (typeof window === "undefined" || !window.matchMedia) return false;
+    return window.matchMedia("(prefers-color-scheme: dark)").matches;
+  });
 
   useEffect(() => {
     window.workspaceId = workspaceId;
   }, [workspaceId]);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.matchMedia) return;
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const handleChange = (event) => setPrefersDark(event.matches);
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener("change", handleChange);
+    } else {
+      mediaQuery.addListener(handleChange);
+    }
+    return () => {
+      if (mediaQuery.removeEventListener) {
+        mediaQuery.removeEventListener("change", handleChange);
+      } else {
+        mediaQuery.removeListener(handleChange);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    persistThemePreference(themeMode);
+  }, [themeMode]);
+
+  const resolvedMode =
+    themeMode === "system" ? (prefersDark ? "dark" : "light") : themeMode;
+  const theme = resolvedMode === "dark" ? darkTheme : lightTheme;
+  const themeContextValue = useMemo(
+    () => ({
+      mode: themeMode,
+      resolvedMode,
+      setMode: setThemeMode,
+    }),
+    [themeMode, resolvedMode]
+  );
 
   const router = createBrowserRouter([
     {
@@ -29,35 +106,10 @@ export default () => {
 
   if (loading) return <Loading />;
   return (
-    <ThemeProvider
-      // theme={{
-      //   bg: "#202528",
-      //   hover: "#3e454a",
-      //   text: "#e9ecef",
-      //   border: "#495057",
-      //   subtext: "#adb5bd",
-      //   success: "#28a745",
-      //   okaynews: "#9acd32",
-      //   danger: "#dc3545",
-      //   warning: "#ffc107",
-      //   badnews: "#ff7707",
-      //   blue: "#007bff",
-      // }}
-      theme={{
-        bg: "#f4f4f4",
-        hover: "#e6e8ea",
-        text: "#212529",
-        border: "#c4c7ca",
-        subtext: "#6c757d",
-        success: "#28a745",
-        okaynews: "#8bc34a",
-        danger: "#dc3545",
-        warning: "#ffc107",
-        badnews: "#ff6f00",
-        blue: "#0d6efd",
-      }}
-    >
-      <RouterProvider router={router} />
-    </ThemeProvider>
+    <ThemePreferenceContext.Provider value={themeContextValue}>
+      <ThemeProvider theme={theme}>
+        <RouterProvider router={router} />
+      </ThemeProvider>
+    </ThemePreferenceContext.Provider>
   );
 };

@@ -8,6 +8,12 @@ Self-hosted backend for the basic-statuspage frontend. Configuration lives in `c
 - Start dev server: `npm run dev` (default port `2000`)
 - Required env: `REDIS_URL`, `JWT_SECRET` (no fallback). Optional: `PORT`, `CONFIG_PATH`.
 
+## Configuration
+
+- Set `CONFIG_URL` to point at a remote `pingpal.config.json` served over HTTP(S). The backend bootstraps from that URL, caches the payload in-memory, and refreshes it every minute (`CONFIG_REFRESH_INTERVAL_MS`, minimum 5000ms).
+- When `CONFIG_URL` is unset, configuration is loaded from disk (`config/pingpal.config.json` by default). Override with `CONFIG_PATH` if you want to mount a different file.
+- The HTTP API is exposed under `/api/*` (override via `API_PREFIX`) and the compiled status page is served from the same origin. For local development you can still run the frontend separately; set `VITE_API_BASE_URL` to an absolute URL if needed.
+
 ## File-based routes
 
 Routes live in `src/routes` and are discovered automatically. Examples:
@@ -34,6 +40,12 @@ Routes live in `src/routes` and are discovered automatically. Examples:
 
 - If Redis is unreachable, the server logs a warning and uses in-memory storage for the current process lifetime.
 - CORS is open by default to keep the frontend happy while running locally.
+
+## Docker
+
+- Build the full stack container (frontend build + API + static hosting) from the repo root: `docker build -t pingpal .`
+- Runtime env to set: `REDIS_URL`, `JWT_SECRET`, plus any of the config flags above (`CONFIG_URL`, `CONFIG_REFRESH_INTERVAL_MS`, `STATIC_ASSETS_DIR`, etc.).
+- By default the container serves the SPA assets from `/app/v2/public` and exposes the API on port `2000` under the `/api` prefix. Adjust `API_PREFIX`/`STATIC_ASSETS_DIR` env vars if you move things around.
 
 ## Faker (data seeding)
 

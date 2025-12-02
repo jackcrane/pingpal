@@ -84,10 +84,9 @@
       "url": "https://example.com",
       "outage": [
         {
-          "outageId": "7ohvqjnm5",
-          "comment": "Damn intern!",
-          "author": "Jack Crane",
-          "title": "Oops"
+          "outageId": "pa2cy4ux8",
+          "comment": "*Requestor outage* the statuspage requestor went offline, not the service.",
+          "author": "Jack Crane"
         }
       ]
     }

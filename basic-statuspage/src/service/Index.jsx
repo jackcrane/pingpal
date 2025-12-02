@@ -101,6 +101,7 @@ export const Service = ({ serviceId, workspaceId, fullscreen = false }) => {
   const effectiveWorkspaceId = workspaceId ?? window.workspaceId;
   const [timeRange, setTimeRange] = useState(DEFAULT_TIME_RANGE);
   const [scaleMode, setScaleMode] = useState("scaled");
+  // todo: show 100 buckets on > 500 px wide, otherwise show 50
   const { loading, service } = useService(serviceId, effectiveWorkspaceId, {
     interval: timeRange,
   });
@@ -296,11 +297,12 @@ export const Service = ({ serviceId, workspaceId, fullscreen = false }) => {
             </Row>
             <Subtitle>
               {service.success_percentage != null
-                ? `${service.success_percentage.toFixed(2)}%`
+                ? `${service.success_percentage.toFixed(3)}%`
                 : "No data yet"}
             </Subtitle>
           </Between>
           <Spacer height={"5px"} />
+          {/* todo: Make this admonition not show on mobile */}
           {fullscreen ? (
             <Row style={{ justifyContent: "flex-end" }}>
               <WarningDiamond size={16} color={theme.warning} weight="bold" />{" "}

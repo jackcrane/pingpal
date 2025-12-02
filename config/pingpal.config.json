@@ -23,47 +23,56 @@
     },
     {
       "id": "fosdata",
+      "group": "fosdata",
       "name": "fosdata docs",
       "url": "https://fosdata.pages.dev"
     },
     {
       "id": "fosdata-package",
+      "group": "fosdata",
       "name": "fosdata Bechdel package",
       "url": "https://fosdata.pages.dev/data/bechdel.rda",
       "intervalSeconds": 600
     },
     {
       "id": "eventpilot",
+      "group": "EventPilot",
       "name": "EventPilot homepage",
       "url": "https://geteventpilot.com"
     },
     {
       "id": "eventpilot-docs",
+      "group": "EventPilot",
       "name": "EventPilot docs",
       "url": "https://docs.geteventpilot.com"
     },
     {
       "id": "og-image",
+      "group": "og-image",
       "name": "OG Image Generator (landing page)",
       "url": "https://og-image.xyz"
     },
     {
       "id": "og-image-image",
+      "group": "og-image",
       "name": "OG Image Generator (image endpoint)",
       "url": "https://og-image.xyz/og/statuspage/subtitle/og-image.xyz/https/menlo/candybar/black/data.png"
     },
     {
       "id": "paddlefest-volunteer-registration",
+      "group": "Paddlefest",
       "name": "Paddlefest Volunteer Registration",
       "url": "https://volunteer.ohioriverpaddlefest.org"
     },
     {
       "id": "paddlefest-volunteer-admin",
+      "group": "Paddlefest",
       "name": "Paddlefest Volunteer Admin",
       "url": "https://paddlefest-admin-simple.pages.dev/"
     },
     {
       "id": "paddlefest-volunteer-admin-api",
+      "group": "Paddlefest",
       "name": "Paddlefest Volunteer API",
       "url": "https://volunteer.jackcrane.rocks/admin/volunteers",
       "outage": [
@@ -82,6 +91,7 @@
     },
     {
       "id": "featurebench-worker",
+      "group": "FeatureBench",
       "name": "FeatureBench Worker",
       "url": "http://worker.featurebench.com/healthz",
       "outage": [

@@ -3,17 +3,44 @@ import http from "http";
 import https from "https";
 import path from "path";
 import { fileURLToPath } from "url";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const DEFAULT_CONFIG_PATH = process.env.CONFIG_PATH
-  ? path.resolve(process.env.CONFIG_PATH)
-  : path.resolve(__dirname, "../../../config/pingpal.config.json");
+const BASE_CONFIG_PATH = path.resolve(
+  __dirname,
+  "../../../config/pingpal.config.json"
+);
 
-const CONFIG_URL =
+const envConfigPath = process.env.CONFIG_PATH
+  ? path.resolve(process.env.CONFIG_PATH)
+  : null;
+
+const rawConfigSource =
   typeof process.env.CONFIG_URL === "string" &&
   process.env.CONFIG_URL.trim().length
     ? process.env.CONFIG_URL.trim()
     : null;
+
+const isHttpUrl = (value) => {
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
+};
+
+const CONFIG_URL = rawConfigSource && isHttpUrl(rawConfigSource)
+  ? rawConfigSource
+  : null;
+
+const LOCAL_CONFIG_PATH =
+  (!CONFIG_URL && rawConfigSource
+    ? path.resolve(rawConfigSource)
+    : envConfigPath) || BASE_CONFIG_PATH;
+
 const CONFIG_REFRESH_INTERVAL_MS = (() => {
   const fallback = 60_000;
   const raw = Number(process.env.CONFIG_REFRESH_INTERVAL_MS);
@@ -45,18 +72,18 @@ const normalizeConfig = (raw = {}) => {
 
 const readConfigFromDisk = () => {
   try {
-    const stat = fs.statSync(DEFAULT_CONFIG_PATH);
+    const stat = fs.statSync(LOCAL_CONFIG_PATH);
     if (cachedFileContents && cachedMtime === stat.mtimeMs) {
       return cachedFileContents;
     }
-    const contents = fs.readFileSync(DEFAULT_CONFIG_PATH, "utf-8");
+    const contents = fs.readFileSync(LOCAL_CONFIG_PATH, "utf-8");
     const parsed = JSON.parse(contents);
     cachedFileContents = parsed;
     cachedMtime = stat.mtimeMs;
     return parsed;
   } catch (err) {
     throw new Error(
-      `Unable to read config file at ${DEFAULT_CONFIG_PATH}: ${err.message}`
+      `Unable to read config file at ${LOCAL_CONFIG_PATH}: ${err.message}`
     );
   }
 };

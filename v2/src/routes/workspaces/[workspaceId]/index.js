@@ -13,6 +13,11 @@ export const GET = async (_req, _res, ctx) => {
   ctx.json(200, {
     ...workspace,
     defaults,
-    services: services.map(({ id, name, url }) => ({ id, name, url })),
+    services: services.map(({ id, name, url, group }) => ({
+      id,
+      name,
+      url,
+      ...(typeof group === "string" && group.length ? { group } : {}),
+    })),
   });
 };

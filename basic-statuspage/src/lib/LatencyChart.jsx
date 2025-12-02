@@ -198,10 +198,6 @@ export const LatencyChart = ({
               dx={4}
               textAnchor="start"
               style={{ fill: theme.border, fontSize: 16 }}
-              backgroundStyle={{
-                fill: theme.bg,
-              }}
-              backgroundPadding={{ left: 4, right: 4, top: 2, bottom: 2 }}
             />
           }
           style={{

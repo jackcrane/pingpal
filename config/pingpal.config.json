@@ -82,10 +82,11 @@
       "id": "faker",
       "name": "Faker",
       "url": "https://example.com",
-      "outageComments": [
+      "outages": [
         {
           "outageId": "n9lapuxp7",
-          "comment": "Damn intern!"
+          "comment": "Damn intern!",
+          "title": "Oops"
         }
       ]
     }

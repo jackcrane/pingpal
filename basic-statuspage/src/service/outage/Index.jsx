@@ -52,6 +52,25 @@ const combineSequentialFailures = (failures = []) => {
   return grouped;
 };
 
+const formatDurationSummary = (start, end) => {
+  if (!start || !end) return null;
+  const diffMs = Math.abs(new Date(end).getTime() - new Date(start).getTime());
+  if (!Number.isFinite(diffMs)) return null;
+
+  const totalSeconds = Math.floor(diffMs / 1000);
+  const totalMinutes = Math.floor(totalSeconds / 60);
+  const totalHours = Math.floor(totalMinutes / 60);
+  const days = Math.floor(totalHours / 24);
+  const hours = totalHours % 24;
+  const minutes = totalMinutes % 60;
+  const seconds = totalSeconds % 60;
+
+  if (days > 0) return `${days}d ${hours}h`;
+  if (totalHours > 0) return `${totalHours}h ${minutes}m`;
+  if (totalMinutes > 0) return `${totalMinutes}m`;
+  return `${seconds}s`;
+};
+
 const Outage = ({ outage, serviceId, open: _open = false }) => {
   const [open, setOpen] = useState(_open);
   const theme = useTheme();
@@ -100,6 +119,11 @@ const Outage = ({ outage, serviceId, open: _open = false }) => {
     return null;
   }
 
+  const resolvedDurationLabel =
+    outage.status === "OPEN"
+      ? null
+      : formatDurationSummary(outageStart, outageEnd);
+
   return (
     <Card>
       <Between style={{ cursor: "pointer" }} onClick={() => setOpen(!open)}>
@@ -108,15 +132,19 @@ const Outage = ({ outage, serviceId, open: _open = false }) => {
             <CaretRight size={20} color={theme.subtext} />
           </DropdownButton>
           <P>
-            {moment(outageEnd).format("M/D, h:mm:ss a")} - {" "}
-            {moment(outageStart).format("M/D, h:mm:ss a")}
+            {moment(outageStart).format("M/D, h:mm:ss a")} -{" "}
+            {moment(outageEnd).format("M/D, h:mm:ss a")}
           </P>
         </Row>
         <span>
           {outage.status === "OPEN" ? (
             <Red>Open</Red>
           ) : (
-            <Green>Resolved</Green>
+            <Green>
+              {resolvedDurationLabel
+                ? `Resolved in ${resolvedDurationLabel}`
+                : "Resolved"}
+            </Green>
           )}
         </span>
       </Between>

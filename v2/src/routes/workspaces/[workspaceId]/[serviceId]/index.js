@@ -59,7 +59,10 @@ export const GET = async (_req, _res, ctx) => {
   const now = Date.now();
   const rangeEndMs = now;
   const rangeStartMs = rangeEndMs - intervalMs;
-  const hits = await fetchHits(serviceId, rangeStartMs, rangeEndMs);
+  const allHits = await fetchHits(serviceId, 0, rangeEndMs);
+  const hits = allHits.filter(
+    (hit) => typeof hit.timestamp === "number" && hit.timestamp >= rangeStartMs
+  );
 
   const { buckets, averaged_data, success_percentage } = bucketizeHits(hits, {
     bucketCount,
@@ -71,20 +74,32 @@ export const GET = async (_req, _res, ctx) => {
   const configuredOutages =
     service.outage || service.outages || service.outageComments || [];
 
-  const outages = buildOutages(hits, {
+  const outageCandidates = buildOutages(allHits, {
     serviceId: service.id,
     configuredOutages,
     minimumDurationMs,
-  }).map((outage) => ({
-    id: outage.id,
-    status: outage.status,
-    start: outage.start,
-    end: outage.end,
-    createdAt: outage.createdAt,
-    resolvedAt: outage.resolvedAt,
-    comments: outage.comments,
-    title: outage.title || null,
-  }));
+  });
+
+  const outages = outageCandidates
+    .filter((outage) => {
+      const startMs = new Date(outage.start).getTime();
+      const endMs = new Date(outage.end).getTime();
+      const normalizedStart = Number.isFinite(startMs) ? startMs : rangeEndMs;
+      const normalizedEnd = Number.isFinite(endMs)
+        ? endMs
+        : normalizedStart;
+      return normalizedEnd >= rangeStartMs && normalizedStart <= rangeEndMs;
+    })
+    .map((outage) => ({
+      id: outage.id,
+      status: outage.status,
+      start: outage.start,
+      end: outage.end,
+      createdAt: outage.createdAt,
+      resolvedAt: outage.resolvedAt,
+      comments: outage.comments,
+      title: outage.title || null,
+    }));
 
   const hasHits = Array.isArray(hits) && hits.length > 0;
   const hasBucketData = (buckets || []).some((b) => b.total > 0);

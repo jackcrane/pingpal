@@ -53,15 +53,21 @@ export const GET = async (_req, _res, ctx) => {
   const includeClosed = String(ctx.query.includeClosed || "false") === "true";
   const intervalMs = parseInterval(ctx.query.interval || "90d");
   const now = Date.now();
-  const hits = await fetchHits(serviceId, now - intervalMs, now);
+  const allHits = await fetchHits(serviceId, 0, now);
   const criticalSeconds = resolveCriticalSeconds(ctx, service);
   const minimumDurationMs = Math.max(0, criticalSeconds * 1000);
   const configuredOutages =
     service.outage || service.outages || service.outageComments || [];
-  const outages = buildOutages(hits, {
+  const outages = buildOutages(allHits, {
     serviceId: service.id,
     configuredOutages,
     minimumDurationMs,
+  }).filter((outage) => {
+    const startMs = new Date(outage.start).getTime();
+    const endMs = new Date(outage.end).getTime();
+    const normalizedStart = Number.isFinite(startMs) ? startMs : now;
+    const normalizedEnd = Number.isFinite(endMs) ? endMs : normalizedStart;
+    return normalizedEnd >= now - intervalMs && normalizedStart <= now;
   });
 
   const filtered = includeClosed

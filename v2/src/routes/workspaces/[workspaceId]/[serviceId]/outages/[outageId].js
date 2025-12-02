@@ -18,28 +18,6 @@ const resolveCriticalSeconds = (ctx, service) => {
   return 180;
 };
 
-const parseInterval = (value) => {
-  if (!value || typeof value !== "string") return 180 * 24 * 60 * 60 * 1000;
-  const match = value.match(/^([0-9]+)([smhdw])$/);
-  if (!match) return 180 * 24 * 60 * 60 * 1000;
-  const amount = parseInt(match[1], 10);
-  const unit = match[2];
-  switch (unit) {
-    case "s":
-      return amount * 1000;
-    case "m":
-      return amount * 60 * 1000;
-    case "h":
-      return amount * 60 * 60 * 1000;
-    case "d":
-      return amount * 24 * 60 * 60 * 1000;
-    case "w":
-      return amount * 7 * 24 * 60 * 60 * 1000;
-    default:
-      return 180 * 24 * 60 * 60 * 1000;
-  }
-};
-
 export const GET = async (_req, _res, ctx) => {
   if (!ensureWorkspace(ctx)) return;
   const { serviceId, outageId } = ctx.params;
@@ -54,9 +32,8 @@ export const GET = async (_req, _res, ctx) => {
     String(ctx.query.includeFailures || "false") === "true";
   const includeComments =
     String(ctx.query.includeComments || "false") === "true";
-  const intervalMs = parseInterval(ctx.query.interval || "180d");
   const now = Date.now();
-  const hits = await fetchHits(serviceId, now - intervalMs, now);
+  const hits = await fetchHits(serviceId, 0, now);
   const criticalSeconds = resolveCriticalSeconds(ctx, service);
   const minimumDurationMs = Math.max(0, criticalSeconds * 1000);
   const configuredOutages =

@@ -93,6 +93,7 @@ const mapUptimeToSize = (uptime, fullscreen) =>
 
 const _StatusPillContainer = styled.div`
   position: relative;
+  opacity: ${(props) => (props.isFiller ? 0 : 1)};
 `;
 
 const _StatusPill = styled.div`
@@ -166,7 +167,7 @@ const _StatusPillLine = styled.div`
 
 export const StatusPill = (props) => {
   return (
-    <_StatusPillContainer>
+    <_StatusPillContainer isFiller={props.isFiller}>
       <_StatusPill {...props} />
       {props.fullscreen && props.showLabel && (
         <>

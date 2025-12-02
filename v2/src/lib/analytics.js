@@ -38,40 +38,40 @@ const latencyMetrics = (latencies) => {
   };
 };
 
-export const bucketizeHits = (hits, { bucketCount, intervalMs }) => {
-  if (!hits || hits.length === 0) {
-    return {
-      buckets: [],
-      averaged_data: null,
-      success_percentage: null,
-    };
-  }
+export const bucketizeHits = (
+  hits,
+  { bucketCount, intervalMs, rangeEndMs = Date.now() }
+) => {
+  const safeHits = Array.isArray(hits) ? hits : [];
+  const normalizedBucketCount = Math.max(1, bucketCount || 1);
+  const endTime = typeof rangeEndMs === "number" ? rangeEndMs : Date.now();
+  const startTime = endTime - intervalMs;
+  const bucketSize = intervalMs / normalizedBucketCount || 1;
 
-  const buckets = Array.from({ length: bucketCount }).map((_, idx) => ({
-    bucket: idx + 1,
-    success_count: 0,
-    failure_count: 0,
-    total: 0,
-    latencies: [],
-    starting_time: null,
-    ending_time: null,
-  }));
+  const buckets = Array.from({ length: normalizedBucketCount }).map(
+    (_, idx) => ({
+      bucket: idx + 1,
+      success_count: 0,
+      failure_count: 0,
+      total: 0,
+      latencies: [],
+      starting_time: null,
+      ending_time: null,
+    })
+  );
 
-  const now = Date.now();
-  const startTime = now - intervalMs;
-  const bucketSize = intervalMs / bucketCount;
-
-  for (let i = 0; i < bucketCount; i++) {
+  for (let i = 0; i < normalizedBucketCount; i++) {
     const bucketStart = startTime + i * bucketSize;
     const bucketEnd = bucketStart + bucketSize;
     buckets[i].starting_time = new Date(bucketStart).toISOString();
     buckets[i].ending_time = new Date(bucketEnd).toISOString();
   }
 
-  hits.forEach((hit) => {
-    if (hit.timestamp < startTime) return;
+  safeHits.forEach((hit) => {
+    if (typeof hit.timestamp !== "number") return;
+    if (hit.timestamp < startTime || hit.timestamp > endTime) return;
     const index = Math.min(
-      bucketCount - 1,
+      normalizedBucketCount - 1,
       Math.max(
         0,
         Math.floor((hit.timestamp - startTime) / bucketSize)
@@ -155,7 +155,7 @@ export const bucketizeHits = (hits, { bucketCount, intervalMs }) => {
 
   const success_percentage =
     successTotal.total === 0
-      ? 100
+      ? null
       : (successTotal.success / successTotal.total) * 100;
 
   return { buckets: finalized, averaged_data, success_percentage };

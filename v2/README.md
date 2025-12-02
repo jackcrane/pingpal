@@ -34,3 +34,8 @@ Routes live in `src/routes` and are discovered automatically. Examples:
 
 - If Redis is unreachable, the server logs a warning and uses in-memory storage for the current process lifetime.
 - CORS is open by default to keep the frontend happy while running locally.
+
+## Faker (data seeding)
+
+- Generate 30 days of synthetic hits into Redis: `npm run faker -- --id my-service --avg 250 --down 5`
+- Flags: `--id` (service id, required), `--avg` (avg response ms, required), `--down` (percentage downtime 0-100, required), `--days` (default 30), `--interval` seconds between datapoints (default 60), `--historyLimit` to override trimming (omit to keep everything).

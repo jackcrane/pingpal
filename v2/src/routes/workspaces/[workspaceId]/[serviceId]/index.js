@@ -49,54 +49,26 @@ export const GET = async (_req, _res, ctx) => {
   );
 
   const now = Date.now();
-  const hits = await fetchHits(serviceId, now - intervalMs, now);
-  if (!hits || hits.length === 0) {
-    ctx.json(200, {
-      service: {
-        id: service.id,
-        name: service.name,
-        url: service.url,
-      },
-      success_percentage: null,
-      averaged_data: null,
-      data: [],
-      meta: {
-        intervalMs,
-        bucketCount,
-        hits_considered: 0,
-        generatedAt: new Date().toISOString(),
-        message: "No data collected yet for this service",
-      },
-    });
-    return;
-  }
+  const rangeEndMs = now;
+  const rangeStartMs = rangeEndMs - intervalMs;
+  const hits = await fetchHits(serviceId, rangeStartMs, rangeEndMs);
 
   const { buckets, averaged_data, success_percentage } = bucketizeHits(hits, {
     bucketCount,
     intervalMs,
+    rangeEndMs,
   });
-  const filteredBuckets = (buckets || []).filter((b) => b.total > 0);
-  const hasBucketData = filteredBuckets.length > 0;
-  if (!hasBucketData) {
-    ctx.json(200, {
-      service: {
-        id: service.id,
-        name: service.name,
-        url: service.url,
-      },
-      success_percentage: null,
-      averaged_data: null,
-      data: [],
-      meta: {
-        intervalMs,
-        bucketCount,
-        hits_considered: hits.length,
-        generatedAt: new Date().toISOString(),
-        message: "No bucket data available for this service",
-      },
-    });
-    return;
+
+  const hasHits = Array.isArray(hits) && hits.length > 0;
+  const hasBucketData = (buckets || []).some((b) => b.total > 0);
+  let message = null;
+  if (!hasHits) {
+    message = "No data collected yet for this service";
+  } else if (!hasBucketData) {
+    message = "No bucket data available for this service";
   }
+
+  const hitsConsidered = Array.isArray(hits) ? hits.length : 0;
 
   ctx.json(200, {
     service: {
@@ -105,13 +77,16 @@ export const GET = async (_req, _res, ctx) => {
       url: service.url,
     },
     success_percentage,
-    averaged_data,
-    data: filteredBuckets,
+    averaged_data: hasHits ? averaged_data : null,
+    data: buckets,
     meta: {
       intervalMs,
       bucketCount,
-      hits_considered: hits.length,
-      generatedAt: new Date().toISOString(),
+      hits_considered: hitsConsidered,
+      generatedAt: new Date(rangeEndMs).toISOString(),
+      rangeStartMs,
+      rangeEndMs,
+      ...(message ? { message } : {}),
     },
   });
 };

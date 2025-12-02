@@ -53,47 +53,57 @@ export const Service = ({ serviceId, workspaceId, fullscreen = false }) => {
   const hasData = service?.data && service.data.length > 0;
   const hasBuckets = hasData && service.data.some((d) => d.total > 0);
   const targetPillCount = fullscreen ? 100 : 60;
-  const padOffset = Math.max(0, targetPillCount - (service?.data?.length || 0));
-  const placeholderHeights = Array.from({ length: targetPillCount }).map(
-    (_, i) => 14 + ((i * 19) % (fullscreen ? 75 : 40))
-  );
-  const displayData = hasBuckets
-    ? service.data.map((d, i) => ({
-        ...d,
-        _displayBucket: padOffset + i + 1,
-        _originalIndex: i,
-      }))
+  const totalBuckets = service?.meta?.bucketCount || targetPillCount;
+  const bucketWindow = Math.min(targetPillCount, totalBuckets);
+  const bucketDurationMs =
+    service?.meta?.intervalMs && service?.meta?.bucketCount
+      ? service.meta.intervalMs / service.meta.bucketCount
+      : 60 * 1000;
+  const generatedAtMs = service?.meta?.generatedAt
+    ? new Date(service.meta.generatedAt).getTime()
+    : Date.now();
+  const intervalMs =
+    service?.meta?.intervalMs || bucketWindow * bucketDurationMs;
+  const windowStartBucket = Math.max(1, totalBuckets - bucketWindow + 1);
+  const rangeStartMs = generatedAtMs - intervalMs;
+  const realBuckets = hasBuckets
+    ? service.data.map((d, i) => ({ ...d, _originalIndex: i }))
     : [];
-  const dummyChartData = Array.from({ length: targetPillCount }).map(
-    (_, i) => ({
-      bucket: i + 1,
+  const bucketByNumber = new Map(realBuckets.map((d) => [d.bucket, d]));
+  const chartData = Array.from({ length: bucketWindow }).map((_, idx) => {
+    const bucketNumber = windowStartBucket + idx;
+    const match = bucketByNumber.get(bucketNumber);
+    const bucketStart = rangeStartMs + (bucketNumber - 1) * bucketDurationMs;
+    const bucketEnd = bucketStart + bucketDurationMs;
+
+    if (match) {
+      return {
+        ...match,
+        bucket: idx + 1,
+        _originalBucket: bucketNumber,
+        hidden: false,
+      };
+    }
+
+    return {
+      bucket: idx + 1,
+      _originalBucket: bucketNumber,
       min_latency: 1,
       max_latency: 1,
       median_latency: 1,
       q1_latency: 1,
       q3_latency: 1,
       avg_latency: 1,
-      success_percentage: 100,
-      starting_time: new Date(Date.now() - (targetPillCount - i) * 60000),
-      ending_time: new Date(Date.now() - (targetPillCount - i - 1) * 60000),
-      total: 1,
-    })
+      success_percentage: 0,
+      starting_time: new Date(bucketStart).toISOString(),
+      ending_time: new Date(bucketEnd).toISOString(),
+      total: 0,
+      hidden: true,
+    };
+  });
+  const placeholderHeights = Array.from({ length: bucketWindow }).map(
+    (_, i) => 14 + ((i * 19) % (fullscreen ? 75 : 40))
   );
-  const chartData = hasBuckets
-    ? [
-        ...Array.from({ length: padOffset }).map((_, i) => ({
-          ...dummyChartData[i],
-          hidden: true,
-          success_percentage: 0,
-          total: 0,
-        })),
-        ...displayData.map((d) => ({
-          ...d,
-          bucket: d._displayBucket,
-          hidden: false,
-        })),
-      ]
-    : dummyChartData.map((d) => ({ ...d, hidden: true, success_percentage: 0, total: 0 }));
 
   useFavicon(
     fullscreen
@@ -194,28 +204,28 @@ export const Service = ({ serviceId, workspaceId, fullscreen = false }) => {
           <Spacer height={"10px"} />
           <NoOverflow>
             {fullscreen ? (
-              <div style={{ opacity: hasBuckets ? 1 : 0, transition: "opacity 0.2s" }}>
+              <div
+                style={{
+                  opacity: hasBuckets ? 1 : 0,
+                  transition: "opacity 0.2s",
+                }}
+              >
                 <LatencyChart
                   data={chartData}
-                  bucketCount={targetPillCount}
+                  bucketCount={bucketWindow}
                   serviceId={serviceId}
                 />
               </div>
             ) : null}
-            <PillRow>
+            <PillRow data-chartdata={JSON.stringify(chartData[0])}>
               {(() => {
-                const pills = hasBuckets
-                  ? [
-                      ...Array.from({ length: padOffset }).fill(null),
-                      ...displayData,
-                    ]
-                  : Array.from({ length: targetPillCount }).fill(null);
-                return pills.slice(0, targetPillCount).map((d, index) => {
-                  if (d) {
+                const pills = chartData;
+                return pills.slice(0, bucketWindow).map((d, index) => {
+                  if (d && !d.hidden) {
                     return (
                       <StatusPill
-                        key={d._displayBucket || d.bucket}
-                        bucketNumber={d._displayBucket || d.bucket}
+                        key={d._originalBucket || d.bucket}
+                        bucketNumber={d.bucket}
                         uptime={d.success_percentage}
                         fullscreen={fullscreen}
                         labelText={moment(d.ending_time).format("M/D") + " ↓"}
@@ -225,11 +235,17 @@ export const Service = ({ serviceId, workspaceId, fullscreen = false }) => {
                                 .startOf("day")
                                 .diff(
                                   moment(
-                                    (service.data[d._originalIndex - 1] ||
-                                      d).ending_time
+                                    (service.data[d._originalIndex - 1] || d)
+                                      .ending_time
                                   ).startOf("day")
-                                ) !== 0 && moment(d.ending_time).date() % 2 === 0
+                                ) !== 0 &&
+                              moment(d.ending_time).date() % 2 === 0
                             : false
+                        }
+                        isFiller={
+                          d.success_count === 0 &&
+                          d.failure_count === 0 &&
+                          d.total === 0
                         }
                       >
                         {fullscreen ? (
@@ -244,7 +260,8 @@ export const Service = ({ serviceId, workspaceId, fullscreen = false }) => {
                       </StatusPill>
                     );
                   }
-                  const height = placeholderHeights[index % placeholderHeights.length];
+                  const height =
+                    placeholderHeights[index % placeholderHeights.length];
                   return (
                     <div
                       key={`placeholder-${index}`}

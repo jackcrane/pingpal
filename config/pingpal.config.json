@@ -65,7 +65,14 @@
     {
       "id": "paddlefest-volunteer-admin-api",
       "name": "Paddlefest Volunteer API",
-      "url": "https://volunteer.jackcrane.rocks/admin/volunteers"
+      "url": "https://volunteer.jackcrane.rocks/admin/volunteers",
+      "outage": [
+        {
+          "outageId": "bgc9yyka5",
+          "title": "SSL Error",
+          "comment": "The Paddlefest Volunteer API experienced an SSL error. My orchestrator attempted to provision a SSL certificate for a wildcard domain, but the wildcard domain was not fully configured. The SSL certificate was provisioned, but was not valid. The heartbeat expects HTTPS with a valid SSL certificate, so the heartbeats failed."
+        }
+      ]
     },
     {
       "id": "rmp-x-courses",
@@ -94,7 +101,8 @@
     {
       "id": "orw-api",
       "name": "ORW API",
-      "url": "https://orw-api.jackcrane.rocks/weather"
+      "url": "https://orw-api.jackcrane.rocks/weather",
+      "expectedText": "weather"
     }
   ]
 }

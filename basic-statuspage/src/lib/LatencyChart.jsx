@@ -4,6 +4,7 @@ import {
   CanvasGroup,
   VictoryBoxPlot,
   VictoryGroup,
+  VictoryLabel,
   VictoryLine,
   VictoryTheme,
   VictoryTooltip,
@@ -20,6 +21,9 @@ export const LatencyChart = ({
   scaleMode = "scaled",
 }) => {
   const actualCount = bucketCount || data.length || 0;
+  const xMax = Math.max(actualCount, 1);
+  const isAbsoluteScale = scaleMode === "absolute" || scaleMode === "absolute-log";
+  const isLogScale = scaleMode === "absolute-log";
 
   const visibleData = (data || []).filter((d) => !d.hidden);
   const _data = visibleData.map((d) => ({
@@ -58,19 +62,23 @@ export const LatencyChart = ({
     absoluteMaxLatency || 0
   );
   const absoluteMaxWithPadding = Math.max(1, absoluteBaseline) * 1.05;
-  const latencyDomainMax =
-    scaleMode === "absolute" ? absoluteMaxWithPadding : scaledMax;
+  const latencyDomainMax = isAbsoluteScale ? absoluteMaxWithPadding : scaledMax;
 
   const absoluteMinLatency = visibleData.reduce((min, d) => {
     const value = d?.min_latency;
-    if (typeof value !== "number") return min;
+    if (typeof value !== "number" || value <= 0) return min;
     return Math.min(min, value);
   }, Number.POSITIVE_INFINITY);
   const safeMinBaseline = Number.isFinite(absoluteMinLatency)
     ? absoluteMinLatency
     : 0;
-  const latencyDomainMin =
+  const rawLatencyDomainMin =
     safeMinBaseline > 0 ? Math.max(0, safeMinBaseline * 0.9) : 0;
+  const latencyDomainMin = isLogScale
+    ? rawLatencyDomainMin > 0
+      ? rawLatencyDomainMin
+      : 1
+    : rawLatencyDomainMin;
 
   const lineData = Array.from({ length: actualCount }).map((_, i) => {
     const bucketNumber = i + 1;
@@ -111,9 +119,40 @@ export const LatencyChart = ({
     return 0.5;
   };
 
+  const guidelineValues = [
+    { value: 1000, label: "1,000ms" },
+    { value: 10000, label: "10,000ms" },
+    { value: 20000, label: "20,000ms" },
+    { value: 30000, label: null },
+    { value: 40000, label: null },
+    { value: 50000, label: "50,000ms" },
+    { value: 60000, label: null },
+    { value: 70000, label: null },
+    { value: 80000, label: null },
+    { value: 90000, label: null },
+    { value: 100000, label: "100,000ms" },
+  ];
+  const filteredGuidelines = guidelineValues.filter(
+    ({ value }) =>
+      value >= Math.max(latencyDomainMin, isLogScale ? 0.1 : 0) && value <= latencyDomainMax
+  );
+  const guidelineLines = filteredGuidelines.map(({ value, label }) => ({
+    value,
+    points: [
+      {
+        x: 1,
+        y: value,
+        label: label ?? "",
+      },
+      { x: xMax, y: value, label: "" },
+    ],
+  }));
+
+  const yScale = isLogScale ? "log" : "sqrt";
+
   return (
     <VictoryGroup
-      scale={{ y: "sqrt" }}
+      scale={{ y: yScale }}
       height={windowWidth > 900 ? 500 : 200}
       width={width}
       standalone={true}
@@ -140,6 +179,28 @@ export const LatencyChart = ({
         },
       }}
     >
+      {guidelineLines.map(({ points }, idx) => (
+        <VictoryLine
+          key={`guide-${idx}`}
+          data={points}
+          labels={({ datum }) => datum.label}
+          labelComponent={
+            <VictoryLabel
+              dy={-2}
+              dx={4}
+              textAnchor="start"
+              style={{ fill: theme.border, fontSize: 16 }}
+            />
+          }
+          style={{
+            data: {
+              stroke: theme.border,
+              strokeDasharray: "4 4",
+              opacity: 0.6,
+            },
+          }}
+        />
+      ))}
       <VictoryBoxPlot
         labelComponent={<VictoryTooltip />}
         width={width}

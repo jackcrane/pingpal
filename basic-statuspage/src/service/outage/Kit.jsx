@@ -39,39 +39,33 @@ export const OutageDetail = styled.div`
 `;
 
 export const Duration = ({ start, end }) => {
-  const humanTime = moment(start).from(moment(end), true);
   const diff = moment(start).diff(moment(end));
-  const duration = moment.duration(diff);
-  const secondCount = moment(start).diff(moment(end), "seconds");
+  const dur = moment.duration(diff);
   const theme = useTheme();
 
-  console.log(duration);
+  const totalSeconds = Math.abs(dur.asSeconds());
+  const days = Math.floor(totalSeconds / 86400);
+  const hours = Math.floor((totalSeconds % 86400) / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = Math.floor(totalSeconds % 60);
 
-  const days = duration.days() > 0 ? `${duration.days()}d ` : "";
-  const hours = duration.hours() > 0 ? `${duration.hours()}h ` : "";
-  const minutes = duration.minutes() > 0 ? `${duration.minutes()}m ` : "";
-  const seconds = duration.seconds() > 0 ? `${duration.seconds()}s` : "";
+  const formatted =
+    days > 0
+      ? `${days}d ${hours}h ${minutes}m ${seconds}s`
+      : hours > 0
+      ? `${hours}h ${minutes}m ${seconds}s`
+      : minutes > 0
+      ? `${minutes}m ${seconds}s`
+      : `${seconds}s`;
 
-  // 0: success, (0, 60): warning, 60+: danger
   const color =
     diff === 0
       ? theme.success
-      : secondCount < 60
+      : totalSeconds < 60
       ? theme.warning
       : theme.danger;
 
-  return (
-    <P
-      style={{
-        color,
-      }}
-    >
-      {days}
-      {hours}
-      {minutes}
-      {seconds}
-    </P>
-  );
+  return <P style={{ color }}>{formatted}</P>;
 };
 
 export const HrHiddenLarge = styled(Hr)`

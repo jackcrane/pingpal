@@ -10,6 +10,14 @@ const ensureWorkspace = (ctx) => {
   return true;
 };
 
+const resolveCriticalSeconds = (ctx, service) => {
+  const serviceValue = Number(service.criticalOutageSeconds);
+  if (Number.isFinite(serviceValue)) return serviceValue;
+  const defaultValue = Number(ctx.config.defaults?.criticalOutageSeconds);
+  if (Number.isFinite(defaultValue)) return defaultValue;
+  return 180;
+};
+
 const parseInterval = (value) => {
   if (!value || typeof value !== "string") return 90 * 24 * 60 * 60 * 1000;
   const match = value.match(/^([0-9]+)([smhdw])$/);
@@ -46,7 +54,13 @@ export const GET = async (_req, _res, ctx) => {
   const intervalMs = parseInterval(ctx.query.interval || "90d");
   const now = Date.now();
   const hits = await fetchHits(serviceId, now - intervalMs, now);
-  const outages = buildOutages(hits);
+  const criticalSeconds = resolveCriticalSeconds(ctx, service);
+  const minimumDurationMs = Math.max(0, criticalSeconds * 1000);
+  const outages = buildOutages(hits, {
+    serviceId: service.id,
+    outageComments: service.outageComments || [],
+    minimumDurationMs,
+  });
 
   const filtered = includeClosed
     ? outages

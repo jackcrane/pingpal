@@ -15,13 +15,7 @@ export const Comment = ({ comment }) => {
       >
         <UserCircle size={24} />
         <Column>
-          <Row style={{ gap: 10 }}>
-            <H5>{comment.user.name}</H5>
-            <P>
-              {moment(comment.createdAt).format("M/D, h:mm:ss a")}(
-              {moment(comment.createdAt).fromNow()})
-            </P>
-          </Row>
+          <H5>{comment.user.name}</H5>
           <P>{comment.text}</P>
         </Column>
       </Row>

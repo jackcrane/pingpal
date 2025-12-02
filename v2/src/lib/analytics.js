@@ -1,3 +1,5 @@
+import { createHash } from "crypto";
+
 const percentile = (arr, p) => {
   if (!arr.length) return 0;
   const sorted = [...arr].sort((a, b) => a - b);
@@ -6,6 +8,36 @@ const percentile = (arr, p) => {
   const upper = Math.ceil(idx);
   if (lower === upper) return sorted[lower];
   return sorted[lower] + (sorted[upper] - sorted[lower]) * (idx - lower);
+};
+
+const outageHash = (serviceId, startTs, endTs) => {
+  const base = `${serviceId || "service"}:${Number(startTs) || 0}:${
+    Number(endTs) || 0
+  }`;
+  const hex = createHash("sha1").update(base).digest("hex");
+  const base36 = BigInt(`0x${hex}`).toString(36).padStart(9, "0");
+  return base36.slice(0, 9);
+};
+
+const buildConfiguredComments = (entries = [], outageId, fallbackDate) => {
+  if (!outageId || !Array.isArray(entries) || !entries.length) return [];
+  const safeFallback = fallbackDate || new Date().toISOString();
+  return entries
+    .filter((entry) => entry && entry.outageId === outageId && entry.comment)
+    .map((entry, idx) => {
+      const providedUser =
+        typeof entry.user === "object" && entry.user
+          ? entry.user
+          : null;
+      const name = entry.author || providedUser?.name || "PingPal Admin";
+      const user = providedUser?.name ? providedUser : { name };
+      return {
+        id: entry.id || `${outageId}-comment-${idx}`,
+        text: entry.comment,
+        createdAt: entry.createdAt || safeFallback,
+        user,
+      };
+    });
 };
 
 const latencyMetrics = (latencies) => {
@@ -172,9 +204,48 @@ const deriveReason = (hit) => {
   return "UNKNOWN";
 };
 
-export const buildOutages = (hits) => {
+export const buildOutages = (hits, options = {}) => {
+  const {
+    serviceId = "service",
+    outageComments = [],
+    minimumDurationMs = 3 * 60 * 1000,
+  } = options;
   const outages = [];
   let current = null;
+
+  const finalizeCurrent = (resolutionTimestamp) => {
+    if (!current) return;
+    const startTs = current._startTimestamp;
+    const endTs =
+      typeof resolutionTimestamp === "number"
+        ? resolutionTimestamp
+        : current._lastFailureTimestamp || startTs;
+    current.id = outageHash(serviceId, startTs, endTs);
+    current.start = new Date(startTs).toISOString();
+    current.end = new Date(endTs).toISOString();
+    if (resolutionTimestamp) {
+      current.resolvedAt = new Date(resolutionTimestamp).toISOString();
+      current.status = "RESOLVED";
+    } else {
+      current.status = "OPEN";
+    }
+
+    const fallbackDate =
+      current.resolvedAt || new Date(current._lastFailureTimestamp || endTs).toISOString();
+    const configured = buildConfiguredComments(
+      outageComments,
+      current.id,
+      fallbackDate
+    );
+
+    current.comments = [...(current.comments || []), ...configured];
+
+    delete current._startTimestamp;
+    delete current._lastFailureTimestamp;
+
+    outages.push(current);
+    current = null;
+  };
 
   hits
     .sort((a, b) => a.timestamp - b.timestamp)
@@ -183,12 +254,14 @@ export const buildOutages = (hits) => {
       if (!ok) {
         if (!current) {
           current = {
-            id: `outage-${hit.timestamp}`,
             createdAt: new Date(hit.timestamp).toISOString(),
             failures: [],
             comments: [],
+            _startTimestamp: hit.timestamp,
+            _lastFailureTimestamp: hit.timestamp,
           };
         }
+        current._lastFailureTimestamp = hit.timestamp;
         current.failures.push({
           id: `failure-${hit.timestamp}-${idx}`,
           createdAt: new Date(hit.timestamp).toISOString(),
@@ -197,19 +270,46 @@ export const buildOutages = (hits) => {
           latencyMs: hit.latencyMs,
         });
       } else if (current) {
-        current.resolvedAt = new Date(hit.timestamp).toISOString();
-        current.status = "RESOLVED";
-        outages.push(current);
-        current = null;
+        finalizeCurrent(hit.timestamp);
       }
     });
 
   if (current) {
-    current.status = "OPEN";
-    outages.push(current);
+    finalizeCurrent();
   }
 
-  return outages.sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  const parsedMinimum = Number(minimumDurationMs);
+  const normalizedMinimum = Math.max(
+    0,
+    Number.isFinite(parsedMinimum) ? parsedMinimum : 0
   );
+  const nowMs = Date.now();
+
+  const outagesWithDuration = outages
+    .map((outage) => {
+      const startMs = new Date(outage.start).getTime();
+      const endMs = new Date(outage.end).getTime();
+      const durationMs = Math.max(0, endMs - startMs);
+      const filterDurationMs =
+        outage.status === "OPEN"
+          ? Math.max(0, nowMs - startMs)
+          : durationMs;
+      return {
+        ...outage,
+        durationMs,
+        _filterDurationMs: filterDurationMs,
+      };
+    })
+    .sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+
+  if (normalizedMinimum <= 0) {
+    return outagesWithDuration.map(({ _filterDurationMs, ...outage }) => outage);
+  }
+
+  return outagesWithDuration
+    .filter((outage) => outage._filterDurationMs >= normalizedMinimum)
+    .map(({ _filterDurationMs, ...outage }) => outage);
 };

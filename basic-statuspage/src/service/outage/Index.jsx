@@ -60,14 +60,11 @@ const Outage = ({ outage, open: _open = false }) => {
     [outage?.failures]
   );
 
-  const outageDuration = useMemo(() => {
-    if (!sortedFailures.length) return 0;
-    const startTime = sortedFailures[0].start;
-    const endTime = sortedFailures[sortedFailures.length - 1].end;
-    const diff = moment(endTime).diff(moment(startTime));
-    const duration = moment.duration(diff);
-    return duration.asSeconds();
-  }, [sortedFailures]);
+  const comments = outage?.comments || [];
+
+  const outageStart = outage?.start || sortedFailures[0]?.start || null;
+  const outageEnd =
+    outage?.end || sortedFailures[sortedFailures.length - 1]?.end || null;
 
   const switchFailureType = (type) => {
     switch (type) {
@@ -92,7 +89,7 @@ const Outage = ({ outage, open: _open = false }) => {
     }
   };
 
-  if (!outage || outageDuration === 0 || sortedFailures.length === 0) {
+  if (!outage || !outageStart || !outageEnd || sortedFailures.length === 0) {
     return null;
   }
 
@@ -104,10 +101,8 @@ const Outage = ({ outage, open: _open = false }) => {
             <CaretRight size={20} color={theme.subtext} />
           </DropdownButton>
           <P>
-            {moment(sortedFailures[sortedFailures.length - 1].end).format(
-              "M/D, h:mm:ss a"
-            )}{" "}
-            - {moment(sortedFailures[0].start).format("M/D, h:mm:ss a")}
+            {moment(outageEnd).format("M/D, h:mm:ss a")} -{" "}
+            {moment(outageStart).format("M/D, h:mm:ss a")}
           </P>
         </Row>
         <span>
@@ -128,12 +123,9 @@ const Outage = ({ outage, open: _open = false }) => {
           <H4>Outage Information</H4>
           <Between>
             <P>Duration</P>
-            <Duration
-              start={sortedFailures[0].start}
-              end={sortedFailures[sortedFailures.length - 1].end}
-            />
+            <Duration start={outageStart} end={outageEnd} />
           </Between>
-          <Between
+          {/* <Between
             style={{
               alignItems: "flex-start",
             }}
@@ -156,27 +148,25 @@ const Outage = ({ outage, open: _open = false }) => {
                 </P>
               ))}
             </Column>
-          </Between>
+          </Between> */}
           <Between>
             <P>Outage ID</P>
-            <P>{outage.id.split("-")[0]}</P>
+            <P>{outage.id}</P>
           </Between>
         </OutageDetail>
         <HrHiddenLarge />
         <OutageDetail>
           <Between>
             <H4>Official Comments</H4>
-            {outage.comments && outage.comments?.length > 0
-              ? `${outage.comments.length} comment${
-                  outage.comments.length > 1 ? "s" : ""
-                }`
+            {comments.length > 0
+              ? `${comments.length} comment${comments.length > 1 ? "s" : ""}`
               : "No comments yet!"}
           </Between>
-          {outage.comments && outage.comments?.length > 0 ? (
+          {comments.length > 0 ? (
             <>
               <Spacer height="5px" />
               <Column>
-                {outage.comments?.map((c) => (
+                {comments.map((c) => (
                   <Comment key={c.id} comment={c} />
                 ))}
               </Column>

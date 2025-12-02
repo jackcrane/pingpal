@@ -1,8 +1,8 @@
 {
   "workspace": {
     "id": "default",
-    "name": "PingPal",
-    "description": "Self-hosted uptime board"
+    "name": "Crane Digital Platforms Status Page",
+    "description": "A status page for tracking services run by Crane Digital Platforms"
   },
   "defaults": {
     "intervalSeconds": 60,
@@ -11,6 +11,7 @@
     "timeoutMs": 10000,
     "historyLimit": 200000,
     "failureLimit": 50,
+    "criticalOutageSeconds": 180,
     "method": "GET",
     "headers": {}
   },
@@ -83,7 +84,7 @@
       "url": "https://example.com",
       "outageComments": [
         {
-          "outageId": "agsyt8pu9",
+          "outageId": "n9lapuxp7",
           "comment": "Damn intern!"
         }
       ]

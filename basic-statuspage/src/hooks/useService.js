@@ -1,7 +1,11 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { url } from "../lib/url";
 
-const useService = (serviceId, workspaceId) => {
+const useService = (
+  serviceId,
+  workspaceId,
+  { interval = "30d", bucketCount = 100 } = {}
+) => {
   const [service, setService] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -14,7 +18,7 @@ const useService = (serviceId, workspaceId) => {
     try {
       const f = await fetch(
         url(
-          `/workspaces/${targetWorkspaceId}/${serviceId}?interval=30d&bucketCount=100`
+          `/workspaces/${targetWorkspaceId}/${serviceId}?interval=${interval}&bucketCount=${bucketCount}`
         )
       );
       const data = await f.json();
@@ -22,7 +26,7 @@ const useService = (serviceId, workspaceId) => {
     } finally {
       setLoading(false);
     }
-  }, [serviceId, workspaceId]);
+  }, [serviceId, workspaceId, interval, bucketCount]);
 
   useEffect(() => {
     fetchService();

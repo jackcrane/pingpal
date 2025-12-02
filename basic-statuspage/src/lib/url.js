@@ -7,7 +7,8 @@ const getHostFallback = () => {
 
 const DEFAULT_API_BASE = `${getHostFallback()}/api`;
 
-let cachedBaseUrl = null;
+// let cachedBaseUrl = null;
+let cachedBaseUrl = "http://localhost:2000/api";
 
 const normalizeBase = (value) => {
   if (!value || typeof value !== "string") return null;
@@ -41,9 +42,7 @@ const resolveBaseUrl = () => {
       ? import.meta.env.VITE_API_BASE_URL
       : null;
   const candidate =
-    normalizeBase(windowBase) ||
-    normalizeBase(envBase) ||
-    DEFAULT_API_BASE;
+    normalizeBase(windowBase) || normalizeBase(envBase) || DEFAULT_API_BASE;
   cachedBaseUrl = coerceAbsolute(candidate);
   return cachedBaseUrl;
 };

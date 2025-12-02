@@ -22,7 +22,7 @@ import {
 import useService from "../hooks/useService";
 import { Between, Column, H3, H4, P, Relative, Row, Spacer } from "../kit";
 import { LatencyChart } from "../lib/LatencyChart";
-import { useTheme } from "styled-components";
+import styled, { useTheme } from "styled-components";
 import {
   ArrowFatUp,
   ArrowLeft,
@@ -41,10 +41,54 @@ import Outage from "./outage/Index";
 import { useFavicon } from "@uidotdev/usehooks";
 import { Tooltip } from "./outage/Kit";
 
+const TIME_RANGE_OPTIONS = [
+  { label: "30 Days", value: "30d" },
+  { label: "7 Days", value: "7d" },
+  { label: "24 Hours", value: "24h" },
+  { label: "6 Hours", value: "6h" },
+  { label: "3 Hours", value: "3h" },
+];
+
+const TimeRangeSelect = styled.select`
+  font-size: 0.85rem;
+  padding: 4px 28px 4px 10px;
+  border-radius: 6px;
+  border: 1px solid ${({ theme }) => theme.border};
+  background-color: ${({ theme }) => theme.hover};
+  color: ${({ theme }) => theme.text};
+  cursor: pointer;
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, ${({ theme }) =>
+          theme.text}
+        50%),
+    linear-gradient(135deg, ${({ theme }) => theme.text} 50%, transparent 50%);
+  background-position: calc(100% - 16px) calc(50% - 2px),
+    calc(100% - 10px) calc(50% - 2px);
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+  transition: background-color 0.2s, border-color 0.2s;
+  &:hover {
+    background-color: ${({ theme }) => theme.card};
+  }
+  &:focus {
+    outline: none;
+    box-shadow: none;
+  }
+  option {
+    background-color: ${({ theme }) => theme.card};
+    color: ${({ theme }) => theme.text};
+  }
+`;
+
+const DEFAULT_TIME_RANGE = "24h";
+
 export const Service = ({ serviceId, workspaceId, fullscreen = false }) => {
   let globalTimeout = null;
   const effectiveWorkspaceId = workspaceId ?? window.workspaceId;
-  const { loading, service } = useService(serviceId, effectiveWorkspaceId);
+  const [timeRange, setTimeRange] = useState(DEFAULT_TIME_RANGE);
+  const { loading, service } = useService(serviceId, effectiveWorkspaceId, {
+    interval: timeRange,
+  });
   const outages = service?.outages || [];
   const activeOutage = outages.find((outage) => outage.status === "OPEN");
   const currentlyActive = Boolean(activeOutage);
@@ -126,6 +170,10 @@ export const Service = ({ serviceId, workspaceId, fullscreen = false }) => {
     }
   }, [service, currentBucketIndex]);
 
+  useEffect(() => {
+    setCurrentBucketIndex(0);
+  }, [timeRange]);
+
   const handleLeftArrowClick = () => {
     if (!service?.data?.length) return;
     setCurrentBucketIndex((prevIndex) =>
@@ -138,6 +186,10 @@ export const Service = ({ serviceId, workspaceId, fullscreen = false }) => {
     setCurrentBucketIndex((prevIndex) =>
       prevIndex < service.data.length - 1 ? prevIndex + 1 : 0
     );
+  };
+
+  const handleTimeRangeChange = (event) => {
+    setTimeRange(event.target.value);
   };
 
   if (loading) {
@@ -181,7 +233,33 @@ export const Service = ({ serviceId, workspaceId, fullscreen = false }) => {
       >
         <GraphsContainer fullscreen={fullscreen}>
           <Between>
-            <Title>{service.service.name}</Title>
+            <Row
+              style={{
+                gap: 10,
+                alignItems: "center",
+                flexWrap: "wrap",
+              }}
+            >
+              <Title
+                style={{
+                  margin: 0,
+                  height: "auto",
+                  display: "flex",
+                  alignItems: "center",
+                }}
+              >
+                {service.service.name}
+              </Title>
+              {fullscreen && (
+                <TimeRangeSelect value={timeRange} onChange={handleTimeRangeChange}>
+                  {TIME_RANGE_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </TimeRangeSelect>
+              )}
+            </Row>
             <Subtitle>
               {service.success_percentage != null
                 ? `${service.success_percentage.toFixed(2)}%`

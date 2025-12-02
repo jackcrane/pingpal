@@ -123,7 +123,6 @@ export const Footer = () => {
       <FooterRow>
         <FooterColumn>
           <P>{workspace.name}</P>
-          <P>Online since {moment(workspace.createdAt).format("M/D/YYYY")}</P>
           {workspace?.footerLinks?.map((link) => (
             <TextLink to={link.url}>
               <div
@@ -136,33 +135,6 @@ export const Footer = () => {
               </div>
             </TextLink>
           ))}
-        </FooterColumn>
-        <FooterColumn>
-          <P>
-            <TextLink to="https://pingpal.online">
-              <div
-                style={{ display: "inline-block", textDecoration: "underline" }}
-              >
-                <Row style={{ gap: 5 }}>
-                  <P>Powered by</P>
-                  <img src={logo} style={{ height: 18 }} />
-                </Row>
-              </div>
-            </TextLink>
-          </P>
-          <TextLink to="https://pingpal.online/how">
-            Learn how PingPal stays online
-          </TextLink>
-          <TextLink to="https://pingpal.online/privacy">
-            Privacy Policy
-          </TextLink>
-          <TextLink to="https://pingpal.online/terms">
-            Terms of Service
-          </TextLink>
-          <TextLink to="https://pingpal.online/data">Data policies</TextLink>
-          <TextLink to="https://pingpal.online/contact">
-            Contact PingPal
-          </TextLink>
         </FooterColumn>
       </FooterRow>
       <Spacer height="20px" />

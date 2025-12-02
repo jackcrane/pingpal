@@ -9,7 +9,7 @@ const DEFAULT_API_BASE = `${getHostFallback()}/api`;
 
 let cachedBaseUrl = document.location.origin.includes("localhost")
   ? "http://localhost:2000/api"
-  : window.location.origin;
+  : window.location.origin + "/api";
 
 const normalizeBase = (value) => {
   if (!value || typeof value !== "string") return null;

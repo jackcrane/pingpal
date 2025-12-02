@@ -84,7 +84,15 @@
       "id": "featurebench-worker",
       "name": "FeatureBench Worker",
       "url": "http://worker.featurebench.com/healthz",
-      "expectedText": "{\"ok\":true}"
+      "expectedText": "{\"ok\":true}",
+      "outage": [
+        {
+          "outageId": "jnzk54v2z",
+          "title": "Forced error state",
+          "comment": "We forced an error state on the FeatureBench worker by purposefully expecting response text that would not be present. This was a test outage and the worker did not go offline.",
+          "author": "Jack Crane"
+        }
+      ]
     },
     {
       "id": "faker",

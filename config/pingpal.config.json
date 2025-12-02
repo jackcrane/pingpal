@@ -1,0 +1,20 @@
+{
+  "defaults": {
+    "intervalSeconds": 60,
+    "expectedStatus": 200,
+    "maxLatencyMs": 3000,
+    "timeoutMs": 10000,
+    "historyLimit": 200,
+    "failureLimit": 50,
+    "method": "GET",
+    "headers": {}
+  },
+  "services": [
+    {
+      "id": "example-service",
+      "name": "Example homepage",
+      "url": "https://example.com/health",
+      "expectedText": "ok"
+    }
+  ]
+}

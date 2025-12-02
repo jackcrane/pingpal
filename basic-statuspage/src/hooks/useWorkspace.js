@@ -9,7 +9,11 @@ const useWorkspace = (workspaceId) => {
     setLoading(true);
     const f = await fetch(url(`/workspaces/${workspaceId}`));
     const data = await f.json();
-    setWorkspace(data);
+    const safe = {
+      ...data,
+      services: Array.isArray(data?.services) ? data.services : [],
+    };
+    setWorkspace(safe);
     setLoading(false);
   };
 

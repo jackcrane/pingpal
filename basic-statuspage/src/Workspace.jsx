@@ -12,6 +12,17 @@ export default ({ workspaceId }) => {
 
   if (loading) return <Loading />;
 
+  if (!workspace || !workspace.services) {
+    return (
+      <Container>
+        <Header />
+        <H1>Workspace unavailable</H1>
+        <P>Unable to load workspace data right now.</P>
+        <Footer />
+      </Container>
+    );
+  }
+
   return (
     <Container>
       <Header />

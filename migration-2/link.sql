@@ -1,3 +1,0 @@
-INSERT INTO public."Link" VALUES ('123b176f-e41f-4488-8a1c-3f0122ffa49d', 'Portfolio', 'https://jackcrane.rocks', NULL, NULL, '2024-06-21 06:32:55.369', '2024-06-21 06:32:55.369');
-INSERT INTO public."Link" VALUES ('e88c3047-d4d5-4543-9399-b5ff79ea5669', '@HowdyItsJack', 'https://x.com/howdyitsjack', 'TWITTER', '47309c56-56ee-47af-9782-bbd2c6557136', '2024-06-21 02:33:49.378', '2024-06-21 02:38:39.891');
-INSERT INTO public."Link" VALUES ('ebabc0b2-65f4-4e4d-aa60-7c5796e6f5b8', 'Email', 'mailto:jack@jackcrane.rocks', 'EMAIL', '47309c56-56ee-47af-9782-bbd2c6557136', '2024-06-21 02:38:34.253', '2024-06-21 02:38:16.575');

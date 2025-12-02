@@ -142,12 +142,12 @@ export const Service = ({ serviceId, workspaceId, fullscreen = false }) => {
           <Spacer height={"10px"} />
           <NoOverflow>
             {fullscreen ? (
-              <LatencyChart data={service.data} serviceId={serviceId} />
+              <LatencyChart data={service.data || []} serviceId={serviceId} />
             ) : (
               <></>
             )}
             <PillRow>
-              {service.data.map((d, index) => (
+              {(service.data || []).map((d, index) => (
                 <StatusPill
                   key={d.bucket}
                   bucketNumber={d.bucket}

@@ -6,39 +6,26 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build_db": "npx prisma generate",
     "start_ui": "cd ui && npm run dev",
     "start": "node serve.js",
+    "dev": "nodemon serve.js",
     "build_basicstatuspage": "cd basic-statuspage && yarn && npm run build",
     "build:fe": "yarn build_basicstatuspage",
     "build:landing": "cd landing && yarn && npm run build",
     "dev:fe": "cd basic-statuspage && yarn start",
-    "dev:landing": "cd landing && yarn start",
-    "dev:dashboard": "cd dashboard && yarn start",
-    "build:dashboard": "cd dashboard && yarn && npm run build",
-    "deploy:workerStatus": "cd workerStatus && yarn && yarn deploy"
+    "dev:landing": "cd landing && yarn start"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "prisma": "4.16.1"
+    "nodemon": "^2.0.20"
   },
   "dependencies": {
-    "@prisma/client": "4.16.1",
-    "@sendgrid/mail": "^8.1.3",
-    "bcrypt": "^5.1.1",
-    "body-parser": "^1.20.2",
-    "color": "^4.2.3",
     "cors": "^2.8.5",
-    "ejs": "^3.1.10",
+    "dotenv": "^17.2.3",
     "express": "^4.19.2",
-    "express-file-routing": "^3.0.3",
-    "jsonwebtoken": "^9.0.2",
-    "moment": "^2.30.1",
     "node-fetch": "^3.3.2",
-    "pg": "^8.12.0",
-    "readline": "^1.3.0",
-    "stripe": "^16.1.0"
+    "redis": "^4.6.12"
   }
 }

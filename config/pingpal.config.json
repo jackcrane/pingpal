@@ -91,6 +91,12 @@
           "title": "Forced error state",
           "comment": "We forced an error state on the FeatureBench worker by purposefully expecting response text that would not be present. This was a test outage and the worker did not go offline.",
           "author": "Jack Crane"
+        },
+        {
+          "outageId": "3f1oz1m6z",
+          "comment": "*Requestor outage* the statuspage requestor went offline, not the service.",
+          "author": "Jack Crane",
+          "title": "Requestor outage"
         }
       ]
     },

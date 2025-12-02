@@ -86,7 +86,8 @@
         {
           "outageId": "pa2cy4ux8",
           "comment": "*Requestor outage* the statuspage requestor went offline, not the service.",
-          "author": "Jack Crane"
+          "author": "Jack Crane",
+          "title": "Requestor outage"
         }
       ]
     }

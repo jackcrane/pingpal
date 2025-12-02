@@ -5,7 +5,14 @@ import { recordHit } from "./lib/store.js";
 const tickIntervalSeconds = 1;
 const lastRun = new Map();
 
-const computeOk = ({ statusCode, latencyMs, expectedStatus, maxLatencyMs }) => {
+const computeOk = ({
+  statusCode,
+  latencyMs,
+  expectedStatus,
+  maxLatencyMs,
+  body,
+  expectedText,
+}) => {
   const okStatus =
     typeof statusCode === "number"
       ? expectedStatus
@@ -16,11 +23,25 @@ const computeOk = ({ statusCode, latencyMs, expectedStatus, maxLatencyMs }) => {
     typeof maxLatencyMs === "number" && typeof latencyMs === "number"
       ? latencyMs <= maxLatencyMs
       : true;
+  const requiresText =
+    typeof expectedText === "string" && expectedText.length > 0;
+  const okText = requiresText
+    ? typeof body === "string"
+      ? body.includes(expectedText)
+      : false
+    : true;
   return {
     okStatus,
     okLatency,
-    ok: okStatus && okLatency,
-    reason: okStatus ? (okLatency ? undefined : "LATENCY") : "STATUS_CODE",
+    okText,
+    ok: okStatus && okLatency && okText,
+    reason: okStatus
+      ? okLatency
+        ? okText
+          ? undefined
+          : "EXPECTED_TEXT"
+        : "LATENCY"
+      : "STATUS_CODE",
   };
 };
 
@@ -64,6 +85,7 @@ const runCheck = async (service, defaults, workspaceId) => {
   const timeoutMs = service.timeoutMs || defaults.timeoutMs || 10000;
   const expectedStatus = service.expectedStatus ?? defaults.expectedStatus;
   const maxLatencyMs = service.maxLatencyMs ?? defaults.maxLatencyMs;
+  const expectedText = service.expectedText ?? defaults.expectedText ?? null;
   const historyLimit = service.historyLimit || defaults.historyLimit || 5000;
   const method = service.method || defaults.method || "GET";
   const headers = service.headers || defaults.headers || {};
@@ -87,6 +109,8 @@ const runCheck = async (service, defaults, workspaceId) => {
     latencyMs: result.latencyMs,
     expectedStatus,
     maxLatencyMs,
+    body: result.body,
+    expectedText,
   });
   const isError = Boolean(result.error);
   const finalOk = !isError && computed.ok;

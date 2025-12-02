@@ -10,10 +10,8 @@ const percentile = (arr, p) => {
   return sorted[lower] + (sorted[upper] - sorted[lower]) * (idx - lower);
 };
 
-const outageHash = (serviceId, startTs, endTs) => {
-  const base = `${serviceId || "service"}:${Number(startTs) || 0}:${
-    Number(endTs) || 0
-  }`;
+const outageHash = (serviceId, startTs) => {
+  const base = `${serviceId || "service"}:${Number(startTs) || 0}`;
   const hex = createHash("sha1").update(base).digest("hex");
   const base36 = BigInt(`0x${hex}`).toString(36).padStart(9, "0");
   return base36.slice(0, 9);
@@ -240,7 +238,7 @@ export const buildOutages = (hits, options = {}) => {
       typeof resolutionTimestamp === "number"
         ? resolutionTimestamp
         : current._lastFailureTimestamp || startTs;
-    current.id = outageHash(serviceId, startTs, endTs);
+    current.id = outageHash(serviceId, startTs);
     current.start = new Date(startTs).toISOString();
     current.end = new Date(endTs).toISOString();
     if (resolutionTimestamp) {

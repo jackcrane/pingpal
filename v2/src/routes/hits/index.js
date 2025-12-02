@@ -9,9 +9,10 @@ const ensureWorkspace = (ctx) => {
   return true;
 };
 
-const pickReason = ({ okStatus, okLatency, body }) => {
+const pickReason = ({ okStatus, okLatency, okText, body }) => {
   if (!okStatus) return "STATUS_CODE";
   if (!okLatency) return "LATENCY";
+  if (!okText) return "EXPECTED_TEXT";
   if (body?.error) return "REQUEST_FAILURE";
   return body?.reason || "UNKNOWN";
 };
@@ -34,8 +35,15 @@ export const POST = async (_req, _res, ctx) => {
 
   const defaults = ctx.config.defaults || {};
   const effectiveLatency = typeof latencyMs === "number" ? latencyMs : latency;
-  const expectedStatus = service.expectedStatus || defaults.expectedStatus;
-  const maxLatencyMs = service.maxLatencyMs || defaults.maxLatencyMs;
+  const expectedStatus = service.expectedStatus ?? defaults.expectedStatus;
+  const maxLatencyMs = service.maxLatencyMs ?? defaults.maxLatencyMs;
+  const expectedText = service.expectedText ?? defaults.expectedText ?? null;
+  const bodyText =
+    typeof ctx.body?.body === "string"
+      ? ctx.body.body
+      : typeof ctx.body?.bodyText === "string"
+      ? ctx.body.bodyText
+      : null;
 
   const okStatus =
     typeof statusCode === "number"
@@ -47,13 +55,20 @@ export const POST = async (_req, _res, ctx) => {
     typeof maxLatencyMs === "number" && typeof effectiveLatency === "number"
       ? effectiveLatency <= maxLatencyMs
       : true;
+  const requiresText =
+    typeof expectedText === "string" && expectedText.length > 0;
+  const okText = requiresText
+    ? typeof bodyText === "string"
+      ? bodyText.includes(expectedText)
+      : false
+    : true;
 
   const computedOk =
     typeof ok === "boolean"
       ? ok
       : typeof success === "boolean"
       ? success
-      : okStatus && okLatency;
+      : okStatus && okLatency && okText;
 
   const hit = {
     id: `hit-${Date.now()}`,
@@ -65,7 +80,12 @@ export const POST = async (_req, _res, ctx) => {
     ok: computedOk,
     success: computedOk,
     expectedLatencyMs: maxLatencyMs,
-    reason: pickReason({ okStatus, okLatency, body: ctx.body }),
+    reason: pickReason({
+      okStatus,
+      okLatency,
+      okText,
+      body: ctx.body,
+    }),
   };
 
   const historyLimit = service.historyLimit || defaults.historyLimit || 5000;

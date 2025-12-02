@@ -13,6 +13,14 @@ import { useWindowSize } from "@uidotdev/usehooks";
 
 // min, median, max, q1, q3
 
+const formatGuidelineLabel = (valueMs) => {
+  const seconds = valueMs / 1000;
+  if (Number.isFinite(seconds) && Number.isInteger(seconds) && seconds >= 1) {
+    return `${seconds} second${seconds === 1 ? "" : "s"}`;
+  }
+  return `${valueMs}ms`;
+};
+
 export const LatencyChart = ({
   data,
   serviceId,
@@ -120,17 +128,17 @@ export const LatencyChart = ({
   };
 
   const guidelineValues = [
-    { value: 1000, label: "1,000ms" },
-    { value: 10000, label: "10,000ms" },
-    { value: 20000, label: "20,000ms" },
+    { value: 1000, label: formatGuidelineLabel(1000) },
+    { value: 10000, label: formatGuidelineLabel(10000) },
+    { value: 20000, label: formatGuidelineLabel(20000) },
     { value: 30000, label: null },
     { value: 40000, label: null },
-    { value: 50000, label: "50,000ms" },
+    { value: 50000, label: formatGuidelineLabel(50000) },
     { value: 60000, label: null },
     { value: 70000, label: null },
     { value: 80000, label: null },
     { value: 90000, label: null },
-    { value: 100000, label: "100,000ms" },
+    { value: 100000, label: formatGuidelineLabel(100000) },
   ];
   const filteredGuidelines = guidelineValues.filter(
     ({ value }) =>
@@ -190,6 +198,10 @@ export const LatencyChart = ({
               dx={4}
               textAnchor="start"
               style={{ fill: theme.border, fontSize: 16 }}
+              backgroundStyle={{
+                fill: theme.bg,
+              }}
+              backgroundPadding={{ left: 4, right: 4, top: 2, bottom: 2 }}
             />
           }
           style={{

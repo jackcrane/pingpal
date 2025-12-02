@@ -1,9 +1,12 @@
 import cron from "node-cron";
+import mysql from "mysql2/promise";
+import { Client as PgClient } from "pg";
 import { loadConfig } from "./lib/config.js";
 import { recordHit } from "./lib/store.js";
 
 const tickIntervalSeconds = 1;
 const lastRun = new Map();
+const dbTypes = new Set(["postgres", "mysql"]);
 
 const computeOk = ({
   statusCode,
@@ -45,6 +48,36 @@ const computeOk = ({
   };
 };
 
+const computeSqlOk = ({
+  rowCount,
+  latencyMs,
+  maxLatencyMs,
+  expectedRows,
+  minRows,
+  maxRows,
+}) => {
+  const normalizedRowCount = Number.isFinite(rowCount) ? rowCount : 0;
+  const okLatency =
+    typeof maxLatencyMs === "number" && typeof latencyMs === "number"
+      ? latencyMs <= maxLatencyMs
+      : true;
+  const matchesExact =
+    typeof expectedRows === "number"
+      ? normalizedRowCount === expectedRows
+      : true;
+  const meetsMin =
+    typeof minRows === "number" ? normalizedRowCount >= minRows : true;
+  const meetsMax =
+    typeof maxRows === "number" ? normalizedRowCount <= maxRows : true;
+  const okRows = matchesExact && meetsMin && meetsMax;
+  return {
+    okLatency,
+    okRows,
+    ok: okRows && okLatency,
+    reason: okRows ? (okLatency ? undefined : "LATENCY") : "ROW_COUNT",
+  };
+};
+
 const fetchWithTimeout = async (
   url,
   { timeoutMs = 10000, method = "GET", headers = {} }
@@ -79,31 +112,149 @@ const markRun = (serviceId) => {
   lastRun.set(serviceId, Date.now());
 };
 
-const runCheck = async (service, defaults, workspaceId) => {
-  if (process.env.SKIP_SERVICE_CHECKS === "true") {
-    console.log("Skipping service check");
-    return;
+const coerceNumber = (value) => {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string" && value.trim().length > 0) {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) return parsed;
   }
+  return undefined;
+};
 
-  const intervalSeconds =
-    service.intervalSeconds || defaults.intervalSeconds || 60;
-  const timeoutMs = service.timeoutMs || defaults.timeoutMs || 10000;
-  const expectedStatus = service.expectedStatus ?? defaults.expectedStatus;
-  const maxLatencyMs = service.maxLatencyMs ?? defaults.maxLatencyMs;
-  const expectedText = service.expectedText ?? defaults.expectedText ?? null;
-  const historyLimit = service.historyLimit || defaults.historyLimit || 5000;
-  const method = service.method || defaults.method || "GET";
-  const headers = service.headers || defaults.headers || {};
-
-  if (!service.url) {
-    console.warn(`Service ${service.id} has no URL configured; skipping`);
-    return;
+const resolveAcceptanceValue = (service, defaults, key) => {
+  const safeService = service || {};
+  const safeDefaults = defaults || {};
+  if (
+    safeService.acceptance &&
+    Object.prototype.hasOwnProperty.call(safeService.acceptance, key)
+  ) {
+    const coerced = coerceNumber(safeService.acceptance[key]);
+    if (coerced !== undefined) return coerced;
   }
+  if (Object.prototype.hasOwnProperty.call(safeService, key)) {
+    const coerced = coerceNumber(safeService[key]);
+    if (coerced !== undefined) return coerced;
+  }
+  if (
+    safeDefaults.acceptance &&
+    Object.prototype.hasOwnProperty.call(safeDefaults.acceptance, key)
+  ) {
+    const coerced = coerceNumber(safeDefaults.acceptance[key]);
+    if (coerced !== undefined) return coerced;
+  }
+  if (Object.prototype.hasOwnProperty.call(safeDefaults, key)) {
+    const coerced = coerceNumber(safeDefaults[key]);
+    if (coerced !== undefined) return coerced;
+  }
+  return undefined;
+};
 
-  const intervalMs = intervalSeconds * 1000;
-  if (!shouldRun(service.id, intervalMs)) return;
-  markRun(service.id);
+const withTimeout = (promise, timeoutMs, onTimeout) => {
+  if (!Number.isFinite(timeoutMs) || timeoutMs <= 0) {
+    return Promise.resolve(promise);
+  }
+  return new Promise((resolve, reject) => {
+    let settled = false;
+    const timer = setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      Promise.resolve(onTimeout?.())
+        .catch(() => {})
+        .finally(() => {
+          reject(new Error(`Operation timed out after ${timeoutMs}ms`));
+        });
+    }, timeoutMs);
 
+    Promise.resolve(promise)
+      .then((value) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        resolve(value);
+      })
+      .catch((err) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        reject(err);
+      });
+  });
+};
+
+const runPostgresQuery = async ({ connectionString, query, timeoutMs }) => {
+  const started = Date.now();
+  const client = new PgClient({ connectionString });
+  let closed = false;
+  const close = async () => {
+    if (closed) return;
+    closed = true;
+    try {
+      await client.end();
+    } catch {
+      // ignore
+    }
+  };
+  try {
+    const runner = async () => {
+      await client.connect();
+      const response = await client.query(query);
+      const rowCount =
+        typeof response.rowCount === "number"
+          ? response.rowCount
+          : Array.isArray(response.rows)
+          ? response.rows.length
+          : 0;
+      return { rowCount };
+    };
+    const { rowCount } = await withTimeout(runner(), timeoutMs, close);
+    return { rowCount, latencyMs: Date.now() - started };
+  } catch (err) {
+    return { error: err.message, latencyMs: Date.now() - started };
+  } finally {
+    await close();
+  }
+};
+
+const runMysqlQuery = async ({ connectionString, query, timeoutMs }) => {
+  const started = Date.now();
+  let connection = null;
+  let closed = false;
+  const close = async () => {
+    if (closed) return;
+    closed = true;
+    if (connection) {
+      try {
+        await connection.end();
+      } catch {
+        // ignore
+      }
+    }
+  };
+  try {
+    const runner = async () => {
+      connection = await mysql.createConnection(connectionString);
+      const [rows] = await connection.query(query);
+      const rowCount = Array.isArray(rows) ? rows.length : 0;
+      return { rowCount };
+    };
+    const { rowCount } = await withTimeout(runner(), timeoutMs, close);
+    return { rowCount, latencyMs: Date.now() - started };
+  } catch (err) {
+    return { error: err.message, latencyMs: Date.now() - started };
+  } finally {
+    await close();
+  }
+};
+
+const runHttpServiceCheck = async ({
+  service,
+  timeoutMs,
+  expectedStatus,
+  maxLatencyMs,
+  expectedText,
+  method,
+  headers,
+}) => {
   const result = await fetchWithTimeout(service.url, {
     timeoutMs,
     method,
@@ -120,13 +271,135 @@ const runCheck = async (service, defaults, workspaceId) => {
   const isError = Boolean(result.error);
   const finalOk = !isError && computed.ok;
   const reason = isError ? "REQUEST_FAILURE" : computed.reason;
+  return {
+    statusCode: result.statusCode,
+    latencyMs: result.latencyMs,
+    ok: finalOk,
+    reason,
+    error: result.error,
+    details: null,
+  };
+};
+
+const runDatabaseServiceCheck = async ({
+  type,
+  connectionString,
+  query,
+  timeoutMs,
+  maxLatencyMs,
+  expectedRows,
+  minRows,
+  maxRows,
+}) => {
+  const runner = type === "postgres" ? runPostgresQuery : runMysqlQuery;
+  const result = await runner({ connectionString, query, timeoutMs });
+  const rowCount = Number.isFinite(result.rowCount) ? result.rowCount : 0;
+  const computed = computeSqlOk({
+    rowCount,
+    latencyMs: result.latencyMs,
+    maxLatencyMs,
+    expectedRows,
+    minRows,
+    maxRows,
+  });
+  const finalOk = !result.error && computed.ok;
+  const reason = result.error ? "REQUEST_FAILURE" : computed.reason;
+  return {
+    statusCode: null,
+    latencyMs: result.latencyMs,
+    ok: finalOk,
+    reason,
+    error: result.error,
+    details: { rowCount },
+  };
+};
+
+const runCheck = async (service, defaults, workspaceId) => {
+  if (process.env.SKIP_SERVICE_CHECKS === "true") {
+    console.log("Skipping service check");
+    return;
+  }
+
+  const intervalSeconds =
+    service.intervalSeconds || defaults.intervalSeconds || 60;
+  const timeoutMs = service.timeoutMs || defaults.timeoutMs || 10000;
+  const expectedStatus = service.expectedStatus ?? defaults.expectedStatus;
+  const maxLatencyMs = service.maxLatencyMs ?? defaults.maxLatencyMs;
+  const expectedText = service.expectedText ?? defaults.expectedText ?? null;
+  const historyLimit = service.historyLimit || defaults.historyLimit || 5000;
+  const method = service.method || defaults.method || "GET";
+  const headers = service.headers || defaults.headers || {};
+  const typeRaw =
+    typeof service.type === "string"
+      ? service.type
+      : typeof defaults.type === "string"
+      ? defaults.type
+      : "http";
+  const type = typeRaw.toLowerCase();
+
+  const intervalMs = intervalSeconds * 1000;
+  if (!shouldRun(service.id, intervalMs)) return;
+  markRun(service.id);
+
+  let result = null;
+  if (dbTypes.has(type)) {
+    const connectionString =
+      service.connectionString || service.connection || null;
+    const query = service.query || service.sql || null;
+    if (!connectionString) {
+      console.warn(
+        `Service ${service.id} (${type}) is missing a connectionString; skipping`
+      );
+      return;
+    }
+    if (!query) {
+      console.warn(
+        `Service ${service.id} (${type}) is missing a query; skipping`
+      );
+      return;
+    }
+    const expectedRows = resolveAcceptanceValue(service, defaults, "expectedRows");
+    const minRows = resolveAcceptanceValue(service, defaults, "minRows");
+    const maxRows = resolveAcceptanceValue(service, defaults, "maxRows");
+    result = await runDatabaseServiceCheck({
+      type,
+      connectionString,
+      query,
+      timeoutMs,
+      maxLatencyMs,
+      expectedRows,
+      minRows,
+      maxRows,
+    });
+  } else if (type === "http") {
+    if (!service.url) {
+      console.warn(`Service ${service.id} has no URL configured; skipping`);
+      return;
+    }
+    result = await runHttpServiceCheck({
+      service,
+      timeoutMs,
+      expectedStatus,
+      maxLatencyMs,
+      expectedText,
+      method,
+      headers,
+    });
+  } else {
+    console.warn(`Service ${service.id} has unsupported type "${type}"; skipping`);
+    return;
+  }
 
   console.log(
-    "[HIT] " + service.id,
-    result.statusCode,
+    "[HIT]",
+    `${service.id}:${type}`,
+    result.statusCode ?? "-",
     result.latencyMs,
-    finalOk,
-    reason
+    result.ok,
+    result.reason,
+    result.details?.rowCount !== undefined
+      ? `rows=${result.details.rowCount}`
+      : ""
   );
 
   await recordHit(
@@ -137,11 +410,13 @@ const runCheck = async (service, defaults, workspaceId) => {
       timestamp: Date.now(),
       statusCode: result.statusCode,
       latencyMs: result.latencyMs,
-      ok: finalOk,
-      success: finalOk,
+      ok: result.ok,
+      success: result.ok,
       expectedLatencyMs: maxLatencyMs,
-      reason,
+      reason: result.reason,
       error: result.error,
+      type,
+      details: result.details || undefined,
     },
     historyLimit
   );

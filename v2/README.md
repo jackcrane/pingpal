@@ -29,6 +29,26 @@ Routes live in `src/routes` and are discovered automatically. Examples:
 
 - A cron-driven worker (`src/worker.js`) runs every second and dispatches checks per service using their `intervalSeconds` (or default).
 - Each check fetches the service URL with timeouts/headers/methods from config, computes status/latency health, and records hits into Redis respecting history limits.
+- Services default to HTTP checks, but you can now set `type` to `postgres` or `mysql` to run SQL queries. Database checks require a `connectionString` (URI or MySQL connection options), a `query`, and optional `acceptance` rules:
+
+```json
+{
+  "id": "inventory-db",
+  "name": "Inventory DB health",
+  "type": "postgres",
+  "connectionString": "postgres://user:pass@db.internal:5432/app",
+  "query": "SELECT 1",
+  "maxLatencyMs": 2000,
+  "acceptance": {
+    "expectedRows": 1,
+    "minRows": 1,
+    "maxRows": 1
+  },
+  "intervalSeconds": 60
+}
+```
+
+Row-based acceptance can specify `expectedRows`, `minRows`, or `maxRows`. Latency thresholds (`maxLatencyMs`) work for SQL services just like HTTP, and hits store row counts as metadata for later inspection.
 
 ## Data model
 

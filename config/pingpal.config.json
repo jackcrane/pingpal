@@ -116,6 +116,20 @@
       "url": "https://featurebench.com"
     },
     {
+      "id": "featurebench-db",
+      "group": "FeatureBench",
+      "name": "FeatureBench DB",
+      "type": "postgres",
+      "connectionString": "postgresql://apps:Guro6297@db.jackcrane.rocks/featurebench",
+      "query": "SELECT 1",
+      "maxLatencyMs": 2000,
+      "acceptance": {
+        "expectedRows": 1,
+        "minRows": 1,
+        "maxRows": 1
+      }
+    },
+    {
       "id": "faker",
       "name": "Faker",
       "url": "https://example.com",

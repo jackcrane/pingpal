@@ -7,6 +7,7 @@ Self-hosted backend for the basic-statuspage frontend. Configuration lives in `c
 - Install deps: `cd v2 && npm install`
 - Start dev server: `npm run dev` (default port `2000`)
 - Required env: `REDIS_URL`, `JWT_SECRET`, `SIGN_SEED` (no fallback). Optional: `PORT`, `CONFIG_PATH`.
+- Optional SMTP env for email notifications (all required when enabling alerts): `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE` (`true|false`, defaults to `true` when port `465`), `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`, `SMTP_TO` (comma/space separated list), and optional `SMTP_MESSAGE_ID_HOST` to override the hostname used in generated `Message-ID`s.
 
 ## Configuration
 
@@ -62,6 +63,16 @@ Row-based acceptance can specify `expectedRows`, `minRows`, or `maxRows`. Latenc
 - **Config**: `config/pingpal.config.json` defines a single workspace plus services and defaults (expected status, latency thresholds, history limits).
 - **Hits**: stored per-service in Redis sorted sets (`pingpal:hits:<serviceId>`). Hits drive uptime buckets, latency box-plots, and derived outages.
 - **Outages**: computed on-the-fly from sequential failures. Open outages return `status: "OPEN"`; resolved ones include `resolvedAt`.
+
+## Notifications & email alerts
+
+- `defaults.notifications` now defines the alert policy for all services. Each service can override these values via its own `notifications` object. Supported flags:
+  - `notifyOnOutage` (boolean) — send an email when a service first goes down.
+  - `notifyOnRecovery` (boolean) — send an email when a previously failing service recovers. Recovery messages reply to the outage email where possible so threads stay grouped.
+  - `notifyOnDegraded` (boolean) — send an email the first time a check reports success but the latency exceeds `degradedThresholdMs`.
+  - `degradedThresholdMs` (number) — latency threshold that marks a degraded check. Thresholds inherit from defaults when omitted.
+- Email delivery uses the SMTP settings listed above from `.env`. Alerts include metadata headers (`X-PingPal-*`) so downstream systems can filter or archive by workspace, service, or event type.
+- Notification state (open outage/degraded threads) is tracked per-service in Redis. Clearing Redis will reset the state and re-arm the alert triggers.
 
 ## Notes
 

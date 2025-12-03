@@ -13,13 +13,25 @@
     "failureLimit": 50,
     "criticalOutageSeconds": 120,
     "method": "GET",
-    "headers": {}
+    "headers": {},
+    "notifications": {
+      "notifyOnOutage": true,
+      "notifyOnRecovery": true,
+      "notifyOnDegraded": false,
+      "degradedThresholdMs": 2500
+    }
   },
   "services": [
     {
       "id": "portfolio",
       "name": "Portfolio",
-      "url": "https://jackcrane.rocks"
+      "url": "https://jackcrane.rocks",
+      "notifications": {
+        "notifyOnOutage": true,
+        "notifyOnRecovery": true,
+        "notifyOnDegraded": true,
+        "degradedThresholdMs": 2000
+      }
     },
     {
       "id": "fosdata",

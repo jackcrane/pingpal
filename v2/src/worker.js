@@ -9,6 +9,7 @@ import {
   SecretDecipherError,
   UNDECIPHERABLE_REASON,
 } from "./lib/signing.js";
+import { handleNotifications } from "./lib/notifications.js";
 
 const tickIntervalSeconds = 1;
 const lastRun = new Map();
@@ -127,6 +128,17 @@ const coerceNumber = (value) => {
   return undefined;
 };
 
+const coerceBoolean = (value, fallback = false) => {
+  if (typeof value === "boolean") return value;
+  if (typeof value === "number") return value !== 0;
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+    if (["true", "1", "yes"].includes(normalized)) return true;
+    if (["false", "0", "no"].includes(normalized)) return false;
+  }
+  return fallback;
+};
+
 const resolveAcceptanceValue = (service, defaults, key) => {
   const safeService = service || {};
   const safeDefaults = defaults || {};
@@ -153,6 +165,26 @@ const resolveAcceptanceValue = (service, defaults, key) => {
     if (coerced !== undefined) return coerced;
   }
   return undefined;
+};
+
+const resolveNotifications = (service, defaults) => {
+  const defaultOptions =
+    defaults && typeof defaults.notifications === "object"
+      ? defaults.notifications
+      : {};
+  const serviceOptions =
+    service && typeof service.notifications === "object"
+      ? service.notifications
+      : {};
+  const merged = { ...defaultOptions, ...serviceOptions };
+  const threshold = coerceNumber(merged.degradedThresholdMs);
+  return {
+    notifyOnOutage: coerceBoolean(merged.notifyOnOutage, false),
+    notifyOnRecovery: coerceBoolean(merged.notifyOnRecovery, false),
+    notifyOnDegraded: coerceBoolean(merged.notifyOnDegraded, false),
+    degradedThresholdMs:
+      threshold !== undefined && Number.isFinite(threshold) ? threshold : null,
+  };
 };
 
 const withTimeout = (promise, timeoutMs, onTimeout) => {
@@ -320,7 +352,7 @@ const runDatabaseServiceCheck = async ({
   };
 };
 
-const runCheck = async (service, defaults, workspaceId) => {
+const runCheck = async (service, defaults, workspace) => {
   if (process.env.SKIP_SERVICE_CHECKS === "true") {
     console.log("Skipping service check");
     return;
@@ -335,6 +367,7 @@ const runCheck = async (service, defaults, workspaceId) => {
   const historyLimit = service.historyLimit || defaults.historyLimit || 5000;
   const method = service.method || defaults.method || "GET";
   const headers = service.headers || defaults.headers || {};
+  const notifications = resolveNotifications(service, defaults);
   const typeRaw =
     typeof service.type === "string"
       ? service.type
@@ -342,6 +375,7 @@ const runCheck = async (service, defaults, workspaceId) => {
       ? defaults.type
       : "http";
   const type = typeRaw.toLowerCase();
+  const workspaceId = workspace?.id || "default";
 
   const intervalMs = intervalSeconds * 1000;
   if (!shouldRun(service.id, intervalMs)) return;
@@ -446,24 +480,37 @@ const runCheck = async (service, defaults, workspaceId) => {
       : ""
   );
 
-  await recordHit(
-    service.id,
-    {
-      id: `hit-${Date.now()}`,
-      workspaceId,
-      timestamp: Date.now(),
-      statusCode: result.statusCode,
-      latencyMs: result.latencyMs,
-      ok: result.ok,
-      success: result.ok,
-      expectedLatencyMs: maxLatencyMs,
-      reason: result.reason,
-      error: result.error,
-      type,
-      details: result.details || undefined,
-    },
-    historyLimit
-  );
+  const timestamp = Date.now();
+  const hitPayload = {
+    id: `hit-${timestamp}`,
+    workspaceId,
+    timestamp,
+    statusCode: result.statusCode,
+    latencyMs: result.latencyMs,
+    ok: result.ok,
+    success: result.ok,
+    expectedLatencyMs: maxLatencyMs,
+    reason: result.reason,
+    error: result.error,
+    type,
+    details: result.details || undefined,
+  };
+
+  await recordHit(service.id, hitPayload, historyLimit);
+
+  try {
+    await handleNotifications({
+      workspace: workspace || { id: workspaceId, name: workspaceId },
+      service,
+      notifications,
+      hit: hitPayload,
+    });
+  } catch (err) {
+    console.error(
+      `[notify] Failed to process notifications for ${service.id}:`,
+      err.message
+    );
+  }
 };
 
 export const startWorker = () => {
@@ -473,7 +520,7 @@ export const startWorker = () => {
       if (!services || services.length === 0) return;
       await Promise.all(
         services.map((service) =>
-          runCheck(service, defaults || {}, workspace.id).catch((err) => {
+          runCheck(service, defaults || {}, workspace).catch((err) => {
             console.error(
               `Worker error for service ${service.id}:`,
               err.message

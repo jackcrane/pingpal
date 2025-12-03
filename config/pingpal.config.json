@@ -151,6 +151,12 @@
           "comment": "*Requestor outage* the statuspage requestor went offline, not the service.",
           "author": "Jack Crane",
           "title": "Requestor outage"
+        },
+        {
+          "outageId": "29x5dov8e",
+          "comment": "Purposeful outage: This service was intentionally put into a failing state to test email notifications.",
+          "author": "Jack Crane",
+          "title": "Purposeful outage"
         }
       ]
     },

@@ -41,96 +41,105 @@ const parseInterval = (value) => {
 };
 
 export const GET = async (_req, _res, ctx) => {
-  if (!ensureWorkspace(ctx)) return;
-  const { serviceId } = ctx.params;
-  const service = ctx.config.services.find((s) => s.id === serviceId);
+  try {
+    if (!ensureWorkspace(ctx)) return;
+    const { serviceId } = ctx.params;
+    const service = ctx.config.services.find((s) => s.id === serviceId);
 
-  if (!service) {
-    ctx.json(404, { error: "Service not found" });
-    return;
-  }
+    if (!service) {
+      ctx.json(404, { error: "Service not found" });
+      return;
+    }
 
-  const intervalMs = parseInterval(ctx.query.interval || "30d");
-  const bucketCount = Math.max(
-    1,
-    Math.min(500, parseInt(ctx.query.bucketCount || "100", 10))
-  );
+    const intervalMs = parseInterval(ctx.query.interval || "30d");
+    const bucketCount = Math.max(
+      1,
+      Math.min(500, parseInt(ctx.query.bucketCount || "100", 10))
+    );
 
-  const now = Date.now();
-  const rangeEndMs = now;
-  const rangeStartMs = rangeEndMs - intervalMs;
-  const allHits = await fetchHits(serviceId, 0, rangeEndMs);
-  const hits = allHits.filter(
-    (hit) => typeof hit.timestamp === "number" && hit.timestamp >= rangeStartMs
-  );
+    const now = Date.now();
+    const rangeEndMs = now;
+    const rangeStartMs = rangeEndMs - intervalMs;
+    const allHits = await fetchHits(serviceId, 0, rangeEndMs);
+    const hits = allHits.filter(
+      (hit) =>
+        typeof hit.timestamp === "number" && hit.timestamp >= rangeStartMs
+    );
 
-  const { buckets, averaged_data, success_percentage } = bucketizeHits(hits, {
-    bucketCount,
-    intervalMs,
-    rangeEndMs,
-  });
-  const criticalSeconds = resolveCriticalSeconds(ctx, service);
-  const minimumDurationMs = Math.max(0, criticalSeconds * 1000);
-  const configuredOutages =
-    service.outage || service.outages || service.outageComments || [];
-
-  const outageCandidates = buildOutages(allHits, {
-    serviceId: service.id,
-    configuredOutages,
-    minimumDurationMs,
-  });
-
-  const outages = outageCandidates
-    .filter((outage) => {
-      const startMs = new Date(outage.start).getTime();
-      const endMs = new Date(outage.end).getTime();
-      const normalizedStart = Number.isFinite(startMs) ? startMs : rangeEndMs;
-      const normalizedEnd = Number.isFinite(endMs)
-        ? endMs
-        : normalizedStart;
-      return normalizedEnd >= rangeStartMs && normalizedStart <= rangeEndMs;
-    })
-    .map((outage) => ({
-      id: outage.id,
-      status: outage.status,
-      start: outage.start,
-      end: outage.end,
-      createdAt: outage.createdAt,
-      resolvedAt: outage.resolvedAt,
-      comments: outage.comments,
-      title: outage.title || null,
-    }));
-
-  const hasHits = Array.isArray(hits) && hits.length > 0;
-  const hasBucketData = (buckets || []).some((b) => b.total > 0);
-  let message = null;
-  if (!hasHits) {
-    message = "No data collected yet for this service";
-  } else if (!hasBucketData) {
-    message = "No bucket data available for this service";
-  }
-
-  const hitsConsidered = Array.isArray(hits) ? hits.length : 0;
-
-  ctx.json(200, {
-    service: {
-      id: service.id,
-      name: service.name,
-      url: service.url,
-    },
-    success_percentage,
-    averaged_data,
-    data: buckets,
-    outages,
-    meta: {
-      intervalMs,
+    const { buckets, averaged_data, success_percentage } = bucketizeHits(hits, {
       bucketCount,
-      hits_considered: hitsConsidered,
-      generatedAt: new Date(rangeEndMs).toISOString(),
-      rangeStartMs,
+      intervalMs,
       rangeEndMs,
-      criticalOutageSeconds: criticalSeconds,
-      ...(message ? { message } : {}),
-    },
-  });
+    });
+    const criticalSeconds = resolveCriticalSeconds(ctx, service);
+    const minimumDurationMs = Math.max(0, criticalSeconds * 1000);
+    const configuredOutages =
+      service.outage || service.outages || service.outageComments || [];
+
+    const outageCandidates = buildOutages(allHits, {
+      serviceId: service.id,
+      configuredOutages,
+      minimumDurationMs,
+    });
+
+    const outages = outageCandidates
+      .filter((outage) => {
+        const startMs = new Date(outage.start).getTime();
+        const endMs = new Date(outage.end).getTime();
+        const normalizedStart = Number.isFinite(startMs) ? startMs : rangeEndMs;
+        const normalizedEnd = Number.isFinite(endMs)
+          ? endMs
+          : normalizedStart;
+        return normalizedEnd >= rangeStartMs && normalizedStart <= rangeEndMs;
+      })
+      .map((outage) => ({
+        id: outage.id,
+        status: outage.status,
+        start: outage.start,
+        end: outage.end,
+        createdAt: outage.createdAt,
+        resolvedAt: outage.resolvedAt,
+        comments: outage.comments,
+        title: outage.title || null,
+      }));
+
+    const hasHits = Array.isArray(hits) && hits.length > 0;
+    const hasBucketData = (buckets || []).some((b) => b.total > 0);
+    let message = null;
+    if (!hasHits) {
+      message = "No data collected yet for this service";
+    } else if (!hasBucketData) {
+      message = "No bucket data available for this service";
+    }
+
+    const hitsConsidered = Array.isArray(hits) ? hits.length : 0;
+
+    ctx.json(200, {
+      service: {
+        id: service.id,
+        name: service.name,
+        url: service.url,
+      },
+      success_percentage,
+      averaged_data,
+      data: buckets,
+      outages,
+      meta: {
+        intervalMs,
+        bucketCount,
+        hits_considered: hitsConsidered,
+        generatedAt: new Date(rangeEndMs).toISOString(),
+        rangeStartMs,
+        rangeEndMs,
+        criticalOutageSeconds: criticalSeconds,
+        ...(message ? { message } : {}),
+      },
+    });
+  } catch (err) {
+    console.error(
+      "[routes] GET /workspaces/:workspaceId/:serviceId error:",
+      err.message
+    );
+    ctx.json(500, { error: "Failed to load service data" });
+  }
 };

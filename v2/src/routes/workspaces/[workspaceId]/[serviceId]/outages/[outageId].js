@@ -19,44 +19,52 @@ const resolveCriticalSeconds = (ctx, service) => {
 };
 
 export const GET = async (_req, _res, ctx) => {
-  if (!ensureWorkspace(ctx)) return;
-  const { serviceId, outageId } = ctx.params;
-  const service = ctx.config.services.find((s) => s.id === serviceId);
+  try {
+    if (!ensureWorkspace(ctx)) return;
+    const { serviceId, outageId } = ctx.params;
+    const service = ctx.config.services.find((s) => s.id === serviceId);
 
-  if (!service) {
-    ctx.json(404, { error: "Service not found" });
-    return;
+    if (!service) {
+      ctx.json(404, { error: "Service not found" });
+      return;
+    }
+
+    const includeFailures =
+      String(ctx.query.includeFailures || "false") === "true";
+    const includeComments =
+      String(ctx.query.includeComments || "false") === "true";
+    const now = Date.now();
+    const hits = await fetchHits(serviceId, 0, now);
+    const criticalSeconds = resolveCriticalSeconds(ctx, service);
+    const minimumDurationMs = Math.max(0, criticalSeconds * 1000);
+    const configuredOutages =
+      service.outage || service.outages || service.outageComments || [];
+    const outages = buildOutages(hits, {
+      serviceId: service.id,
+      configuredOutages,
+      minimumDurationMs,
+    });
+    const outage = outages.find((o) => o.id === outageId);
+
+    if (!outage) {
+      ctx.json(404, { error: "Outage not found" });
+      return;
+    }
+
+    ctx.json(200, {
+      id: outage.id,
+      status: outage.status,
+      createdAt: outage.createdAt,
+      resolvedAt: outage.resolvedAt,
+      title: outage.title || null,
+      failures: includeFailures ? outage.failures || [] : [],
+      comments: includeComments ? outage.comments || [] : [],
+    });
+  } catch (err) {
+    console.error(
+      "[routes] GET /workspaces/:workspaceId/:serviceId/outages/:outageId error:",
+      err.message
+    );
+    ctx.json(500, { error: "Failed to load outage details" });
   }
-
-  const includeFailures =
-    String(ctx.query.includeFailures || "false") === "true";
-  const includeComments =
-    String(ctx.query.includeComments || "false") === "true";
-  const now = Date.now();
-  const hits = await fetchHits(serviceId, 0, now);
-  const criticalSeconds = resolveCriticalSeconds(ctx, service);
-  const minimumDurationMs = Math.max(0, criticalSeconds * 1000);
-  const configuredOutages =
-    service.outage || service.outages || service.outageComments || [];
-  const outages = buildOutages(hits, {
-    serviceId: service.id,
-    configuredOutages,
-    minimumDurationMs,
-  });
-  const outage = outages.find((o) => o.id === outageId);
-
-  if (!outage) {
-    ctx.json(404, { error: "Outage not found" });
-    return;
-  }
-
-  ctx.json(200, {
-    id: outage.id,
-    status: outage.status,
-    createdAt: outage.createdAt,
-    resolvedAt: outage.resolvedAt,
-    title: outage.title || null,
-    failures: includeFailures ? outage.failures || [] : [],
-    comments: includeComments ? outage.comments || [] : [],
-  });
 };

@@ -41,47 +41,55 @@ const parseInterval = (value) => {
 };
 
 export const GET = async (_req, _res, ctx) => {
-  if (!ensureWorkspace(ctx)) return;
-  const { serviceId } = ctx.params;
-  const service = ctx.config.services.find((s) => s.id === serviceId);
+  try {
+    if (!ensureWorkspace(ctx)) return;
+    const { serviceId } = ctx.params;
+    const service = ctx.config.services.find((s) => s.id === serviceId);
 
-  if (!service) {
-    ctx.json(404, { error: "Service not found" });
-    return;
+    if (!service) {
+      ctx.json(404, { error: "Service not found" });
+      return;
+    }
+
+    const includeClosed = String(ctx.query.includeClosed || "false") === "true";
+    const intervalMs = parseInterval(ctx.query.interval || "90d");
+    const now = Date.now();
+    const allHits = await fetchHits(serviceId, 0, now);
+    const criticalSeconds = resolveCriticalSeconds(ctx, service);
+    const minimumDurationMs = Math.max(0, criticalSeconds * 1000);
+    const configuredOutages =
+      service.outage || service.outages || service.outageComments || [];
+    const outages = buildOutages(allHits, {
+      serviceId: service.id,
+      configuredOutages,
+      minimumDurationMs,
+    }).filter((outage) => {
+      const startMs = new Date(outage.start).getTime();
+      const endMs = new Date(outage.end).getTime();
+      const normalizedStart = Number.isFinite(startMs) ? startMs : now;
+      const normalizedEnd = Number.isFinite(endMs) ? endMs : normalizedStart;
+      return normalizedEnd >= now - intervalMs && normalizedStart <= now;
+    });
+
+    const filtered = includeClosed
+      ? outages
+      : outages.filter((outage) => outage.status === "OPEN");
+
+    ctx.json(
+      200,
+      filtered.map((outage) => ({
+        id: outage.id,
+        status: outage.status,
+        createdAt: outage.createdAt,
+        resolvedAt: outage.resolvedAt,
+        title: outage.title || null,
+      }))
+    );
+  } catch (err) {
+    console.error(
+      "[routes] GET /workspaces/:workspaceId/:serviceId/outages error:",
+      err.message
+    );
+    ctx.json(500, { error: "Failed to load outages" });
   }
-
-  const includeClosed = String(ctx.query.includeClosed || "false") === "true";
-  const intervalMs = parseInterval(ctx.query.interval || "90d");
-  const now = Date.now();
-  const allHits = await fetchHits(serviceId, 0, now);
-  const criticalSeconds = resolveCriticalSeconds(ctx, service);
-  const minimumDurationMs = Math.max(0, criticalSeconds * 1000);
-  const configuredOutages =
-    service.outage || service.outages || service.outageComments || [];
-  const outages = buildOutages(allHits, {
-    serviceId: service.id,
-    configuredOutages,
-    minimumDurationMs,
-  }).filter((outage) => {
-    const startMs = new Date(outage.start).getTime();
-    const endMs = new Date(outage.end).getTime();
-    const normalizedStart = Number.isFinite(startMs) ? startMs : now;
-    const normalizedEnd = Number.isFinite(endMs) ? endMs : normalizedStart;
-    return normalizedEnd >= now - intervalMs && normalizedStart <= now;
-  });
-
-  const filtered = includeClosed
-    ? outages
-    : outages.filter((outage) => outage.status === "OPEN");
-
-  ctx.json(
-    200,
-    filtered.map((outage) => ({
-      id: outage.id,
-      status: outage.status,
-      createdAt: outage.createdAt,
-      resolvedAt: outage.resolvedAt,
-      title: outage.title || null,
-    }))
-  );
 };

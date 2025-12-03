@@ -40,7 +40,7 @@ import { Inspect } from "./Inspect";
 import { PillHoverHostController } from "./PillHoverHostController";
 import moment from "moment";
 import Outage from "./outage/Index";
-import { useFavicon } from "@uidotdev/usehooks";
+import { useFavicon, useWindowSize } from "@uidotdev/usehooks";
 import { Tooltip } from "./outage/Kit";
 
 const TIME_RANGE_OPTIONS = [
@@ -101,10 +101,14 @@ export const Service = ({ serviceId, workspaceId, fullscreen = false }) => {
   const effectiveWorkspaceId = workspaceId ?? window.workspaceId;
   const [timeRange, setTimeRange] = useState(DEFAULT_TIME_RANGE);
   const [scaleMode, setScaleMode] = useState("scaled");
-  // todo: show 100 buckets on > 500 px wide, otherwise show 50
+  const [bucketCount, setBucketCount] = useState(() =>
+    typeof window !== "undefined" && window.innerWidth <= 500 ? 50 : 100
+  );
   const { loading, service } = useService(serviceId, effectiveWorkspaceId, {
     interval: timeRange,
+    bucketCount,
   });
+  const { width: windowWidth } = useWindowSize();
   const outages = service?.outages || [];
   const activeOutage = outages.find((outage) => outage.status === "OPEN");
   const currentlyActive = Boolean(activeOutage);
@@ -175,6 +179,13 @@ export const Service = ({ serviceId, workspaceId, fullscreen = false }) => {
   );
 
   const theme = useTheme();
+
+  useEffect(() => {
+    if (typeof windowWidth !== "number" || Number.isNaN(windowWidth)) {
+      return;
+    }
+    setBucketCount(windowWidth > 500 ? 100 : 50);
+  }, [windowWidth]);
 
   useEffect(() => {
     if (service?.data?.length > 0) {

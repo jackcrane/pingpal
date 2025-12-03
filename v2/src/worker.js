@@ -374,7 +374,7 @@ const runRedisServiceCheck = async ({
   try {
     const runner = async () => {
       await client.connect();
-      const response = await client.ping("pingpal-healthcheck");
+      const response = await client.ping();
       return { response };
     };
     const { response } = await withTimeout(runner(), timeoutMs, close);
@@ -390,7 +390,11 @@ const runRedisServiceCheck = async ({
       statusCode: null,
       latencyMs,
       ok: pingOk && latencyOk,
-      reason: pingOk ? (latencyOk ? undefined : "LATENCY") : "UNEXPECTED_RESPONSE",
+      reason: pingOk
+        ? latencyOk
+          ? undefined
+          : "LATENCY"
+        : "UNEXPECTED_RESPONSE",
       error: null,
       details: { response: response ?? null },
     };
@@ -560,7 +564,11 @@ const runCheck = async (service, defaults, workspace) => {
       }
       throw err;
     }
-    const expectedRows = resolveAcceptanceValue(service, defaults, "expectedRows");
+    const expectedRows = resolveAcceptanceValue(
+      service,
+      defaults,
+      "expectedRows"
+    );
     const minRows = resolveAcceptanceValue(service, defaults, "minRows");
     const maxRows = resolveAcceptanceValue(service, defaults, "maxRows");
     result = await runDatabaseServiceCheck({
@@ -642,7 +650,9 @@ const runCheck = async (service, defaults, workspace) => {
       maxLatencyMs,
     });
   } else {
-    console.warn(`Service ${service.id} has unsupported type "${type}"; skipping`);
+    console.warn(
+      `Service ${service.id} has unsupported type "${type}"; skipping`
+    );
     return;
   }
 

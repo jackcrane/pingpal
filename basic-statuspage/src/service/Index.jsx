@@ -109,6 +109,7 @@ export const Service = ({ serviceId, workspaceId, fullscreen = false }) => {
     bucketCount,
   });
   const { width: windowWidth } = useWindowSize();
+  const isMobile = typeof windowWidth === "number" ? windowWidth <= 500 : false;
   const outages = service?.outages || [];
   const activeOutage = outages.find((outage) => outage.status === "OPEN");
   const currentlyActive = Boolean(activeOutage);
@@ -313,8 +314,7 @@ export const Service = ({ serviceId, workspaceId, fullscreen = false }) => {
             </Subtitle>
           </Between>
           <Spacer height={"5px"} />
-          {/* todo: Make this admonition not show on mobile */}
-          {fullscreen ? (
+          {fullscreen && !isMobile ? (
             <Row style={{ justifyContent: "flex-end" }}>
               <WarningDiamond size={16} color={theme.warning} weight="bold" />{" "}
               Hold{" "}
@@ -324,9 +324,7 @@ export const Service = ({ serviceId, workspaceId, fullscreen = false }) => {
               </Kbd>{" "}
               to disable select-on-hover.
             </Row>
-          ) : (
-            <></>
-          )}
+          ) : null}
           <Spacer height={"10px"} />
           <NoOverflow>
             {fullscreen ? (

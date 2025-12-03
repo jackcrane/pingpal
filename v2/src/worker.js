@@ -60,7 +60,7 @@ const resolveNotifications = (service, defaults) => {
 
 const runCheck = async (service, defaults, workspace) => {
   if (process.env.SKIP_SERVICE_CHECKS === "true") {
-    console.log("Skipping service check");
+    console.log("Skipping service check", service.id);
     return;
   }
 

@@ -127,6 +127,72 @@ const getTransport = () => {
   return transport;
 };
 
+const formatTargets = (targets = []) => {
+  if (!Array.isArray(targets) || targets.length === 0) {
+    return "Targets: none";
+  }
+  const lines = targets.map((target) => `- ${target}`);
+  return `Targets:\n${lines.join("\n")}`;
+};
+
+export const sendDeletionAlert = async ({
+  origin,
+  description,
+  targets = [],
+  meta = null,
+}) => {
+  const config = getSmtpConfig();
+  const mailer = getTransport();
+  if (!config || !mailer) {
+    console.warn(
+      `[notify] Skipping deletion alert from ${origin || "unknown"}: SMTP not configured`
+    );
+    return null;
+  }
+
+  const normalizedOrigin = origin || "unknown";
+  const normalizedTargets = Array.isArray(targets) ? targets : [];
+  const metadata = meta && Object.keys(meta).length > 0 ? meta : null;
+
+  const sections = [
+    `Origin: ${normalizedOrigin}`,
+    description ? `Description: ${description}` : null,
+    formatTargets(normalizedTargets),
+    metadata ? `Metadata:\n${JSON.stringify(metadata, null, 2)}` : null,
+    `Timestamp: ${new Date().toISOString()}`,
+  ].filter(Boolean);
+
+  const headers = {
+    "X-PingPal-Event": "DATA_DELETION",
+    "X-PingPal-Origin": normalizedOrigin,
+  };
+
+  if (metadata?.serviceId) {
+    headers["X-PingPal-Service-Id"] = metadata.serviceId;
+  }
+  if (metadata?.workspaceId) {
+    headers["X-PingPal-Workspace-Id"] = metadata.workspaceId;
+  }
+
+  const message = {
+    from: config.from,
+    to: config.to,
+    subject: `[PingPal] Deletion triggered (${normalizedOrigin})`,
+    text: sections.join("\n\n"),
+    headers,
+  };
+
+  try {
+    await mailer.sendMail(message);
+  } catch (err) {
+    console.error(
+      `[notify] Failed to send deletion alert from ${normalizedOrigin}:`,
+      err.message
+    );
+  }
+  return null;
+};
+
 const ensureNotificationState = async (serviceId) => {
   const client = await getRedisClient();
   const key = stateKey(serviceId);

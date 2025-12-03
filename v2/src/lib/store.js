@@ -1,9 +1,30 @@
 import { getRedisClient } from "./redis.js";
+import { sendDeletionAlert } from "./notifications.js";
 
-const trimHistory = async (client, key, historyLimit) => {
+const extractServiceId = (key = "") => {
+  if (typeof key !== "string") return null;
+  const prefixed = key.match(/^pingpal:hits:(.+)$/);
+  if (prefixed) return prefixed[1];
+  const legacy = key.match(/^hits:(.+)$/);
+  if (legacy) return legacy[1];
+  return null;
+};
+
+const trimHistory = async (client, key, historyLimit, origin = "trimHistory") => {
   if (!historyLimit) return;
   const excess = (await client.zCard(key)) - historyLimit;
   if (excess > 0) {
+    const serviceId = extractServiceId(key);
+    await sendDeletionAlert({
+      origin,
+      description: `Trimming sorted set ${key} to history limit ${historyLimit}`,
+      targets: [key],
+      meta: {
+        serviceId,
+        historyLimit,
+        deleteCount: excess,
+      },
+    });
     await client.zRemRangeByRank(key, 0, excess - 1);
   }
 };
@@ -20,7 +41,7 @@ export const recordHit = async (serviceId, hit, historyLimit = 5000) => {
   await client.zAdd(key, [
     { score: payload.timestamp, value: JSON.stringify(payload) },
   ]);
-  await trimHistory(client, key, historyLimit);
+  await trimHistory(client, key, historyLimit, "recordHit");
 
   return payload;
 };
@@ -53,6 +74,12 @@ export const deleteServiceHits = async (serviceId) => {
   const legacyZsetKey = `hits:${serviceId}`;
 
   // Drop sorted sets first so they don't point at removed hashes.
+  await sendDeletionAlert({
+    origin: "deleteServiceHits",
+    description: `Deleting sorted-set history keys for service ${serviceId}`,
+    targets: [zsetKey, legacyZsetKey],
+    meta: { serviceId },
+  });
   await redis.del(zsetKey);
   await redis.del(legacyZsetKey);
 
@@ -66,6 +93,16 @@ export const deleteServiceHits = async (serviceId) => {
     const keys = res.keys;
 
     if (keys.length > 0) {
+      await sendDeletionAlert({
+        origin: "deleteServiceHits",
+        description: `Deleting ${keys.length} legacy hash keys for service ${serviceId}`,
+        targets: keys,
+        meta: {
+          serviceId,
+          batchSize: keys.length,
+          cursor,
+        },
+      });
       const multi = redis.multi();
       for (const k of keys) multi.del(k);
       await multi.exec();
@@ -101,6 +138,6 @@ export const recordHitsBatch = async (serviceId, hits, historyLimit = null) => {
   );
 
   await multi.exec();
-  await trimHistory(redis, zsetKey, historyLimit);
+  await trimHistory(redis, zsetKey, historyLimit, "recordHitsBatch");
   return payloads;
 };

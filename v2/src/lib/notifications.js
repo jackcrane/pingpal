@@ -12,6 +12,8 @@ const REQUIRED_SMTP_ENV = [
   "SMTP_TO",
 ];
 
+const REQUIRED_FAILED_HEARTBEATS = 2;
+
 const defaultState = () => ({
   outage: {
     active: false,
@@ -22,6 +24,7 @@ const defaultState = () => ({
     active: false,
     startedAt: null,
   },
+  consecutiveFailures: 0,
 });
 
 const stateKey = (serviceId) => `${STATE_KEY_PREFIX}:${serviceId}`;
@@ -272,9 +275,30 @@ export const handleNotifications = async ({
   let stateChanged = false;
 
   const hitIsOk = isOk(hit);
+  const previousFailures = Number.isFinite(state.consecutiveFailures)
+    ? state.consecutiveFailures
+    : 0;
+  let failureCount = previousFailures;
+
+  if (hitIsOk || state.outage.active) {
+    if (failureCount !== 0) {
+      failureCount = 0;
+      state.consecutiveFailures = 0;
+      stateChanged = true;
+    }
+  } else if (!state.outage.active) {
+    failureCount = previousFailures + 1;
+    if (failureCount !== state.consecutiveFailures) {
+      state.consecutiveFailures = failureCount;
+      stateChanged = true;
+    }
+  }
+
+  const readyForOutageAlert =
+    failureCount >= REQUIRED_FAILED_HEARTBEATS && !state.outage.active;
 
   if (config.notifyOnOutage && !hitIsOk) {
-    if (!state.outage.active) {
+    if (readyForOutageAlert) {
       const messageId = buildMessageId(service.id, "outage");
       try {
         const finalMessageId = await sendEmail(
@@ -288,6 +312,7 @@ export const handleNotifications = async ({
           messageId: finalMessageId || messageId,
           startedAt: timestamp,
         };
+        state.consecutiveFailures = 0;
         state.degraded = { active: false, startedAt: null };
         stateChanged = true;
         console.log(
@@ -320,6 +345,7 @@ export const handleNotifications = async ({
         messageId: finalMessageId || null,
         startedAt: null,
       };
+      state.consecutiveFailures = 0;
       stateChanged = true;
       console.log(
         `[notify] Recovery alert sent for ${service.id} (${finalMessageId})`

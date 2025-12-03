@@ -120,7 +120,7 @@
       "group": "FeatureBench",
       "name": "FeatureBench DB",
       "type": "postgres",
-      "connectionString": "postgresql://apps:Guro6297@db.jackcrane.rocks/featurebench",
+      "connectionString": "enc:rsa:v1:rTpQQrbMdsxnfZKEiVUCrVbJU6Dar7UeTqGaqDaTmSGDGSPh+fRMoH4WqP0ZyNmU4sPU1c7ZQpfEDilkkK2k4mVImaSwEZO1Z12EA1MxNmZzGVGA/D/Lb0B6dDy7oF0anFZ+3hCgPKMJmXpgtSdVyndGqBP8RPB713hA5AEDUvW6SrsjR2oI+fnGW1CJ4lONGMVvk+sd8h3dWTGoaEcm89UAQWtnKF/hO31fSgL0VDLewCKSjmcV3Y9AZMyCeZhqKopWg1tsPcwe3fM05pNlw1ji8fl02qcd6gvr2sqM8pCqZfIs2T/1qsQ8LerKY6wx63I0ScI74R9fk4IgoW/YBQ==",
       "query": "SELECT 1",
       "maxLatencyMs": 2000,
       "acceptance": {

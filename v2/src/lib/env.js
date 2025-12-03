@@ -1,4 +1,4 @@
-const requiredEnv = ["REDIS_URL", "JWT_SECRET"];
+const requiredEnv = ["REDIS_URL", "JWT_SECRET", "SIGN_SEED"];
 
 export const validateEnv = () => {
   const missing = requiredEnv.filter(

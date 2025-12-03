@@ -3,6 +3,12 @@ import mysql from "mysql2/promise";
 import { Client as PgClient } from "pg";
 import { loadConfig } from "./lib/config.js";
 import { recordHit } from "./lib/store.js";
+import {
+  resolveConnectionString,
+  resolveHttpTarget,
+  SecretDecipherError,
+  UNDECIPHERABLE_REASON,
+} from "./lib/signing.js";
 
 const tickIntervalSeconds = 1;
 const lastRun = new Map();
@@ -247,7 +253,7 @@ const runMysqlQuery = async ({ connectionString, query, timeoutMs }) => {
 };
 
 const runHttpServiceCheck = async ({
-  service,
+  url,
   timeoutMs,
   expectedStatus,
   maxLatencyMs,
@@ -255,7 +261,7 @@ const runHttpServiceCheck = async ({
   method,
   headers,
 }) => {
-  const result = await fetchWithTimeout(service.url, {
+  const result = await fetchWithTimeout(url, {
     timeoutMs,
     method,
     headers,
@@ -342,6 +348,28 @@ const runCheck = async (service, defaults, workspaceId) => {
   markRun(service.id);
 
   let result = null;
+  const handleUndecipherable = async (errorMessage) => {
+    console.warn(
+      `[HIT] ${service.id}:${type} undecipherable source: ${errorMessage}`
+    );
+    await recordHit(
+      service.id,
+      {
+        id: `hit-${Date.now()}`,
+        workspaceId,
+        timestamp: Date.now(),
+        statusCode: null,
+        latencyMs: null,
+        ok: false,
+        success: false,
+        expectedLatencyMs: maxLatencyMs,
+        reason: UNDECIPHERABLE_REASON,
+        error: errorMessage,
+        type,
+      },
+      historyLimit
+    );
+  };
   if (dbTypes.has(type)) {
     const connectionString =
       service.connectionString || service.connection || null;
@@ -358,12 +386,22 @@ const runCheck = async (service, defaults, workspaceId) => {
       );
       return;
     }
+    let resolvedConnection = null;
+    try {
+      resolvedConnection = resolveConnectionString(connectionString);
+    } catch (err) {
+      if (err instanceof SecretDecipherError) {
+        await handleUndecipherable(err.message);
+        return;
+      }
+      throw err;
+    }
     const expectedRows = resolveAcceptanceValue(service, defaults, "expectedRows");
     const minRows = resolveAcceptanceValue(service, defaults, "minRows");
     const maxRows = resolveAcceptanceValue(service, defaults, "maxRows");
     result = await runDatabaseServiceCheck({
       type,
-      connectionString,
+      connectionString: resolvedConnection,
       query,
       timeoutMs,
       maxLatencyMs,
@@ -372,12 +410,18 @@ const runCheck = async (service, defaults, workspaceId) => {
       maxRows,
     });
   } else if (type === "http") {
-    if (!service.url) {
-      console.warn(`Service ${service.id} has no URL configured; skipping`);
-      return;
+    let resolvedUrl = null;
+    try {
+      resolvedUrl = resolveHttpTarget(service.url);
+    } catch (err) {
+      if (err instanceof SecretDecipherError) {
+        await handleUndecipherable(err.message);
+        return;
+      }
+      throw err;
     }
     result = await runHttpServiceCheck({
-      service,
+      url: resolvedUrl,
       timeoutMs,
       expectedStatus,
       maxLatencyMs,

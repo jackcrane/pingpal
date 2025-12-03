@@ -6,7 +6,7 @@ Self-hosted backend for the basic-statuspage frontend. Configuration lives in `c
 
 - Install deps: `cd v2 && npm install`
 - Start dev server: `npm run dev` (default port `2000`)
-- Required env: `REDIS_URL`, `JWT_SECRET` (no fallback). Optional: `PORT`, `CONFIG_PATH`.
+- Required env: `REDIS_URL`, `JWT_SECRET`, `SIGN_SEED` (no fallback). Optional: `PORT`, `CONFIG_PATH`.
 
 ## Configuration
 
@@ -49,6 +49,13 @@ Routes live in `src/routes` and are discovered automatically. Examples:
 ```
 
 Row-based acceptance can specify `expectedRows`, `minRows`, or `maxRows`. Latency thresholds (`maxLatencyMs`) work for SQL services just like HTTP, and hits store row counts as metadata for later inspection.
+
+## Secret signing & encryption
+
+- Set `SIGN_SEED` in your environment once. On boot the server derives a deterministic RSA key pair from this seed (no randomness) and stores it in `config/.signing`.
+- Visit the hidden `/_/sign` page on the backend. It fetches the workspace public key (`GET /api/signing/public-key`) and encrypts any URL/connection string entirely in the browser, returning tokens that look like `enc:rsa:v1:<base64>`.
+- Paste the encrypted value into `pingpal.config.json`. When the worker runs, it first treats the field as plaintext; if it doesn't resemble a URL/connection string it automatically attempts to decrypt it with the private key. Failures surface as hits with reason `UNDECIPHERABLE_SOURCE`.
+- This workflow keeps secrets out of the public config while still letting the worker access them securely.
 
 ## Data model
 

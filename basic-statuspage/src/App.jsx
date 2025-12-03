@@ -93,6 +93,14 @@ export default () => {
     [themeMode, resolvedMode]
   );
 
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const { documentElement, body } = document;
+    const backgroundColor = theme.bg;
+    if (documentElement) documentElement.style.backgroundColor = backgroundColor;
+    if (body) body.style.backgroundColor = backgroundColor;
+  }, [theme.bg]);
+
   const router = createBrowserRouter([
     {
       path: "/",

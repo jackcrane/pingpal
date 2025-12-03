@@ -59,6 +59,7 @@
       "id": "redis",
       "name": "Redis Instance",
       "group": "Core Support Services",
+      "description": "The Redis Instance is a hosted key/value storage system that is used to power *this status page* and under the hood by [RabbitMQ](/rabbit-mq) instance which is used by [EventPilot](/eventpilot) and FeatureBench (both the [server](/featurebench) and the [worker](/featurebench-worker)). It shares a VM with my shared postgres, mysql, and [RabbitMQ](/rabbit-mq) instances.",
       "connectionString": "enc:rsa:v1:a9jtLv9FAvSyRyQsnfCmDJ8gdN/IVyA2HbfUoEw//E46zctwxNL8KDGLai5wCoDPj9MfSH6YoDAwUslC2wWJWMbxhtiBXaN71c+1BAob5IrVClURG20N2Dk9VQoZPf3Yp3icZ8esv7D6A6MP6ycu6tUCDAzbT06yeKoBYeg/0+YWoujjBx3uksZHakGtt/KYUwF6YtyMfRgdvXyTfVEjo+prxwdaIXus+U9P/SD4Z9+13GOLncyFWtmOs9krTPtKVx6ElWOCpy5GdXiUZterHznnFFxIdrdw3pu+5CHBjrq7SbxjZLwm7uFPkDdBhhYPZsZjz9vYRGxYxqVn8+3DmQ=="
     },
     {

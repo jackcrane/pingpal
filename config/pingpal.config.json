@@ -45,14 +45,16 @@
       "name": "Coolify Instance",
       "url": "https://admin.jackcrane.rocks/api/v1/health",
       "expectedText": "OK",
-      "group": "Core Support Services"
+      "group": "Core Support Services",
+      "description": "The Coolify instance is a \"mini-paas\" that I deploy docker images against, providing orchestration and a low-cost hosting for my own projects. It is a single-node instance running several images. Databases and storage are hosted on different VMs or providers, and more resource intensive applications run on dedicated VMs or provisioned App Platform instances."
     },
     {
       "type": "rabbitmq",
       "id": "rabbit-mq",
       "name": "RabbitMQ Instance",
       "group": "Core Support Services",
-      "connectionString": "enc:rsa:v1:RgrQHoz92a/afQui7BBm8qum2Z/A2FaTVyxqKQoe47qr/O2+GtOir6WM7X85S24sRigGyhkZl+0tQeEMkUXgdNQodUNDsg9eb5Fs1BweFs742LFiIs2QDvfucOlkZJGuU9rJtwY47tX+uurcccgS2IcLO/WMIiSj8QU9HyWtJFWZivR0SN5OBMPL9Sn7Ujxdx0oY+t3zSLo8emAf/xjoaJbROredZcwHhAzU2Ab6kk+n+b7bOIMFwJ7ZG1Lj82wsr05dt3gnhREX3onwNFqfO9m9GoQOV/RsQkipSKIsH6AEn9oDQgAPnfE8KjV18yClFEKIgGEDmLODiOgJn9AYlQ=="
+      "connectionString": "enc:rsa:v1:RgrQHoz92a/afQui7BBm8qum2Z/A2FaTVyxqKQoe47qr/O2+GtOir6WM7X85S24sRigGyhkZl+0tQeEMkUXgdNQodUNDsg9eb5Fs1BweFs742LFiIs2QDvfucOlkZJGuU9rJtwY47tX+uurcccgS2IcLO/WMIiSj8QU9HyWtJFWZivR0SN5OBMPL9Sn7Ujxdx0oY+t3zSLo8emAf/xjoaJbROredZcwHhAzU2Ab6kk+n+b7bOIMFwJ7ZG1Lj82wsr05dt3gnhREX3onwNFqfO9m9GoQOV/RsQkipSKIsH6AEn9oDQgAPnfE8KjV18yClFEKIgGEDmLODiOgJn9AYlQ==",
+      "description": "The RabbitMQ instance is a hosted instance of RabbitMQ, providing stable queue buildup and scheduling. It allows resiliency between the FeatureBench [server](/featurebench) and [worker](/featurebench-worker) as well as [EventPilot](/eventpilot)."
     },
     {
       "type": "redis",
@@ -116,7 +118,8 @@
       "name": "Rate my Professors x Courses@SLU",
       "url": "https://rmp-conn.jackcrane.workers.dev/api?name=D.%20Letscher",
       "expectedText": "VGVhY2hlci0zMjUwMjQ=",
-      "intervalSeconds": 180
+      "intervalSeconds": 180,
+      "description": "This is a simple API that wraps a DOM parser to extract instructor ratings from Rate My Professors. It is consumed by a chrome extension that plugs into Courses@SLU and displays professor ratings in the course listings. The API is a Cloudflare Worker with no external dependencies. The only potential source of an outage is a Rate My Professors outage or markup change, or a Cloudflare outage."
     },
     {
       "id": "featurebench-worker",

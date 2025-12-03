@@ -14,11 +14,14 @@ export const GET = async (_req, _res, ctx) => {
     ctx.json(200, {
       ...workspace,
       defaults,
-      services: services.map(({ id, name, url, group }) => ({
+      services: services.map(({ id, name, url, group, description }) => ({
         id,
         name,
         url,
         ...(typeof group === "string" && group.length ? { group } : {}),
+        ...(typeof description === "string" && description.trim().length
+          ? { description }
+          : {}),
       })),
     });
   } catch (err) {

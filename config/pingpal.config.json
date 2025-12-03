@@ -100,6 +100,7 @@
       "id": "featurebench-worker",
       "group": "FeatureBench",
       "name": "FeatureBench Worker",
+      "description": "This is the autograder worker for FeatureBench. It is a box that runs a Solidworks instance with a thin API layer providing HTTP and queue consumption capabilities. Due to the architecture of this worker, frequent short outages are expected, but resilience is built-in and all requests sent while the worker is down are queued and retried at a best-effort basis. The FeatureBench worker is designed around eventual consistency, not realtime performance.\n\n As long as the queue is online,",
       "url": "enc:rsa:v1:QeKmxQi/WVgY1IaQyPgWbKQ/vGfUhkawJnKbWmLDFkS5+Txv01AQsGR6soAp5reWxUTxVqdg22DNZjyf2XEi7kUNFyTDxZm19e9Xcb8m+clcGzBsBBL8B3CYKiEIjjhkTF94n0jh7mmR3610TTqEhAs1OPAoQgNbA4VlCsKeOmeOoa98hXuw3M+zYygfdF93iZv4Pfp9RkBuo/T05Qdh6bVtbs6VYZezpxGSAFH96NHs1MjY+Sa5hxf5xm5OIQlgnK+BgW2IIy3a2ba2vo0Q4bqjT3bIfckPDdU0AWX0M5osbzxgba0jXY43TlZ1zaMI/h2vTFT781OeWwLz7HTYgg==",
       "outage": [
         {

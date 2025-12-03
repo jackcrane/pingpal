@@ -119,6 +119,10 @@ export const GET = async (_req, _res, ctx) => {
         id: service.id,
         name: service.name,
         url: service.url,
+        ...(typeof service.description === "string" &&
+        service.description.trim().length
+          ? { description: service.description }
+          : {}),
       },
       success_percentage,
       averaged_data,

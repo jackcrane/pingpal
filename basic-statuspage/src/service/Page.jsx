@@ -10,6 +10,7 @@ import { ArrowCircleLeft } from "@phosphor-icons/react";
 import { useDocumentTitle } from "@uidotdev/usehooks";
 import { Header } from "../Header";
 import { Footer } from "../Footer";
+import styled from "styled-components";
 
 export default ({}) => {
   const { serviceId } = useParams();
@@ -20,6 +21,10 @@ export default ({}) => {
     refetch,
   } = useWorkspace(workspaceId);
   const { loading, service } = useService(serviceId, workspaceId);
+  const rawDescription = service?.service?.description;
+  const serviceDescription =
+    typeof rawDescription === "string" ? rawDescription.trim() : "";
+  const hasDescription = serviceDescription.length > 0;
 
   useDocumentTitle(`${workspace?.name} | ${service?.service?.name} | PingPal`);
 
@@ -50,6 +55,12 @@ export default ({}) => {
           {workspace.name || "Back to workspace"}
         </BackToWorkspace>
       </div>
+      {hasDescription && (
+        <>
+          <Spacer height="15px" />
+          <DescriptionBlock>{serviceDescription}</DescriptionBlock>
+        </>
+      )}
       <Spacer height="50px" />
       <ServiceContainer>
         <Service
@@ -63,3 +74,9 @@ export default ({}) => {
     </Container>
   );
 };
+
+const DescriptionBlock = styled(P)`
+  max-width: 720px;
+  margin: 0;
+  white-space: pre-line;
+`;

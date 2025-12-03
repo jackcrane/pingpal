@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import { Container, H1, Loading, P, ServiceContainer, Spacer } from "../kit";
 import useWorkspace from "../hooks/useWorkspace";
 import { Service } from "./Index";
@@ -11,6 +11,7 @@ import { useDocumentTitle } from "@uidotdev/usehooks";
 import { Header } from "../Header";
 import { Footer } from "../Footer";
 import styled from "styled-components";
+import { formatDescription } from "../lib/formatDescription";
 
 export default ({}) => {
   const { serviceId } = useParams();
@@ -25,6 +26,10 @@ export default ({}) => {
   const serviceDescription =
     typeof rawDescription === "string" ? rawDescription.trim() : "";
   const hasDescription = serviceDescription.length > 0;
+  const formattedDescription = useMemo(
+    () => (hasDescription ? formatDescription(serviceDescription) : ""),
+    [hasDescription, serviceDescription]
+  );
 
   useDocumentTitle(`${workspace?.name} | ${service?.service?.name} | PingPal`);
 
@@ -58,7 +63,9 @@ export default ({}) => {
       {hasDescription && (
         <>
           <Spacer height="15px" />
-          <DescriptionBlock>{serviceDescription}</DescriptionBlock>
+          <DescriptionBlock
+            dangerouslySetInnerHTML={{ __html: formattedDescription }}
+          />
         </>
       )}
       <Spacer height="50px" />
@@ -79,4 +86,21 @@ const DescriptionBlock = styled(P)`
   max-width: 720px;
   margin: 0;
   white-space: pre-line;
+  line-height: 1.6;
+  a {
+    color: ${({ theme }) => theme.subtext};
+    text-decoration: underline;
+    text-decoration-color: ${({ theme }) => theme.subtext};
+    text-decoration-thickness: 2px;
+    transition: color 0.2s;
+    &:hover {
+      color: ${({ theme }) => theme.text};
+    }
+  }
+  strong {
+    color: ${({ theme }) => theme.text};
+  }
+  u {
+    text-decoration-thickness: 2px;
+  }
 `;

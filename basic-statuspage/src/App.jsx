@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Container, H1, Loading, Spacer } from "./kit";
-import { Service } from "./service/Index";
+import { Loading } from "./kit";
 import Workspace from "./Workspace";
 import { ThemeProvider } from "styled-components";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
@@ -12,6 +11,7 @@ import {
   darkTheme,
   lightTheme,
 } from "./theme";
+import SigningPage from "./signing/Page";
 
 const THEME_STORAGE_KEY = "themePreference";
 const THEME_COOKIE_KEY = "themePreference";
@@ -101,6 +101,10 @@ export default () => {
     {
       path: "/:serviceId",
       element: <ServicePage />,
+    },
+    {
+      path: "/_/sign",
+      element: <SigningPage workspaceId={workspaceId} />,
     },
   ]);
 

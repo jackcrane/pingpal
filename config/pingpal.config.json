@@ -25,13 +25,7 @@
     {
       "id": "portfolio",
       "name": "Portfolio",
-      "url": "https://jackcrane.rocks",
-      "notifications": {
-        "notifyOnOutage": true,
-        "notifyOnRecovery": true,
-        "notifyOnDegraded": true,
-        "degradedThresholdMs": 2000
-      }
+      "url": "https://jackcrane.rocks"
     },
     {
       "id": "fosdata",
@@ -99,7 +93,8 @@
       "id": "rmp-x-courses",
       "name": "Rate my Professors x Courses@SLU",
       "url": "https://rmp-conn.jackcrane.workers.dev/api?name=D.%20Letscher",
-      "expectedText": "VGVhY2hlci0zMjUwMjQ="
+      "expectedText": "VGVhY2hlci0zMjUwMjQ=",
+      "intervalSeconds": 180
     },
     {
       "id": "featurebench-worker",

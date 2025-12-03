@@ -1,5 +1,7 @@
 import cron from "node-cron";
 import mysql from "mysql2/promise";
+import amqplib from "amqplib";
+import { createClient as createRedisClient } from "redis";
 import { Client as PgClient } from "pg";
 import { loadConfig } from "./lib/config.js";
 import { recordHit } from "./lib/store.js";
@@ -352,6 +354,134 @@ const runDatabaseServiceCheck = async ({
   };
 };
 
+const runRedisServiceCheck = async ({
+  connectionString,
+  timeoutMs,
+  maxLatencyMs,
+}) => {
+  const started = Date.now();
+  const client = createRedisClient({ url: connectionString });
+  let closed = false;
+  const close = async () => {
+    if (closed) return;
+    closed = true;
+    try {
+      await client.quit();
+    } catch {
+      // ignore
+    }
+  };
+  try {
+    const runner = async () => {
+      await client.connect();
+      const response = await client.ping("pingpal-healthcheck");
+      return { response };
+    };
+    const { response } = await withTimeout(runner(), timeoutMs, close);
+    const latencyMs = Date.now() - started;
+    const normalized =
+      typeof response === "string" ? response.trim().toUpperCase() : "";
+    const pingOk = normalized === "PONG";
+    const latencyOk =
+      typeof maxLatencyMs === "number" && typeof latencyMs === "number"
+        ? latencyMs <= maxLatencyMs
+        : true;
+    return {
+      statusCode: null,
+      latencyMs,
+      ok: pingOk && latencyOk,
+      reason: pingOk ? (latencyOk ? undefined : "LATENCY") : "UNEXPECTED_RESPONSE",
+      error: null,
+      details: { response: response ?? null },
+    };
+  } catch (err) {
+    return {
+      statusCode: null,
+      latencyMs: Date.now() - started,
+      ok: false,
+      reason: "REQUEST_FAILURE",
+      error: err.message,
+      details: null,
+    };
+  } finally {
+    await close();
+  }
+};
+
+const runRabbitServiceCheck = async ({
+  connectionString,
+  timeoutMs,
+  maxLatencyMs,
+}) => {
+  const started = Date.now();
+  let connection = null;
+  let channel = null;
+  const close = async () => {
+    if (channel) {
+      try {
+        await channel.close();
+      } catch {
+        // ignore
+      } finally {
+        channel = null;
+      }
+    }
+    if (connection) {
+      try {
+        await connection.close();
+      } catch {
+        // ignore
+      } finally {
+        connection = null;
+      }
+    }
+  };
+  try {
+    const runner = async () => {
+      connection = await amqplib.connect(connectionString);
+      channel = await connection.createChannel();
+      await channel.assertQueue("", { exclusive: true, autoDelete: true });
+      const serverProps =
+        connection?.serverProperties ||
+        connection?.connection?.serverProperties ||
+        null;
+      return {
+        server: serverProps
+          ? {
+              product: serverProps.product,
+              version: serverProps.version,
+            }
+          : null,
+      };
+    };
+    const { server } = await withTimeout(runner(), timeoutMs, close);
+    const latencyMs = Date.now() - started;
+    const latencyOk =
+      typeof maxLatencyMs === "number" && typeof latencyMs === "number"
+        ? latencyMs <= maxLatencyMs
+        : true;
+    return {
+      statusCode: null,
+      latencyMs,
+      ok: latencyOk,
+      reason: latencyOk ? undefined : "LATENCY",
+      error: null,
+      details: server ? { server } : null,
+    };
+  } catch (err) {
+    return {
+      statusCode: null,
+      latencyMs: Date.now() - started,
+      ok: false,
+      reason: "REQUEST_FAILURE",
+      error: err.message,
+      details: null,
+    };
+  } finally {
+    await close();
+  }
+};
+
 const runCheck = async (service, defaults, workspace) => {
   if (process.env.SKIP_SERVICE_CHECKS === "true") {
     console.log("Skipping service check");
@@ -462,6 +592,54 @@ const runCheck = async (service, defaults, workspace) => {
       expectedText,
       method,
       headers,
+    });
+  } else if (type === "redis") {
+    const connectionTarget =
+      service.connectionString || service.connection || service.url || null;
+    if (!connectionTarget) {
+      console.warn(
+        `Service ${service.id} (${type}) is missing a connectionString; skipping`
+      );
+      return;
+    }
+    let resolvedConnection = null;
+    try {
+      resolvedConnection = resolveConnectionString(connectionTarget);
+    } catch (err) {
+      if (err instanceof SecretDecipherError) {
+        await handleUndecipherable(err.message);
+        return;
+      }
+      throw err;
+    }
+    result = await runRedisServiceCheck({
+      connectionString: resolvedConnection,
+      timeoutMs,
+      maxLatencyMs,
+    });
+  } else if (type === "rabbitmq" || type === "amqp") {
+    const connectionTarget =
+      service.connectionString || service.connection || service.url || null;
+    if (!connectionTarget) {
+      console.warn(
+        `Service ${service.id} (${type}) is missing a connectionString; skipping`
+      );
+      return;
+    }
+    let resolvedConnection = null;
+    try {
+      resolvedConnection = resolveConnectionString(connectionTarget);
+    } catch (err) {
+      if (err instanceof SecretDecipherError) {
+        await handleUndecipherable(err.message);
+        return;
+      }
+      throw err;
+    }
+    result = await runRabbitServiceCheck({
+      connectionString: resolvedConnection,
+      timeoutMs,
+      maxLatencyMs,
     });
   } else {
     console.warn(`Service ${service.id} has unsupported type "${type}"; skipping`);

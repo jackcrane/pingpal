@@ -51,6 +51,9 @@ Routes live in `src/routes` and are discovered automatically. Examples:
 
 Row-based acceptance can specify `expectedRows`, `minRows`, or `maxRows`. Latency thresholds (`maxLatencyMs`) work for SQL services just like HTTP, and hits store row counts as metadata for later inspection.
 
+- Set `type` to `redis` to run a lightweight `PING` against the provided connection string (either `connectionString`, `connection`, or `url`). The worker connects with the standard Redis client, verifies auth, and fails if it cannot receive `PONG`. Latency thresholds still apply.
+- Set `type` to `rabbitmq` (alias `amqp`) to validate AMQP connectivity. Provide an `amqp://`/`amqps://` `connectionString` and the worker will open a channel and assert a temporary queue to ensure auth/permissions succeed before closing the connection.
+
 ## Secret signing & encryption
 
 - Set `SIGN_SEED` in your environment once. On boot the server derives a deterministic RSA key pair from this seed (no randomness) and stores it in `config/.signing`.

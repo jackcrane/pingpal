@@ -10,6 +10,7 @@
     "fake": "npm run faker -- --id faker --avg 146 --down 5"
   },
   "dependencies": {
+    "amqplib": "^0.10.9",
     "dotenv": "^16.4.5",
     "mysql2": "^3.15.3",
     "node-cron": "^3.0.3",

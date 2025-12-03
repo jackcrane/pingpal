@@ -41,6 +41,27 @@
       "intervalSeconds": 600
     },
     {
+      "id": "coolify-instance",
+      "name": "Coolify Instance",
+      "url": "https://admin.jackcrane.rocks/api/v1/health",
+      "expectedText": "OK",
+      "group": "Core Support Services"
+    },
+    {
+      "type": "rabbitmq",
+      "id": "rabbit-mq",
+      "name": "RabbitMQ Instance",
+      "group": "Core Support Services",
+      "connectionString": "enc:rsa:v1:RgrQHoz92a/afQui7BBm8qum2Z/A2FaTVyxqKQoe47qr/O2+GtOir6WM7X85S24sRigGyhkZl+0tQeEMkUXgdNQodUNDsg9eb5Fs1BweFs742LFiIs2QDvfucOlkZJGuU9rJtwY47tX+uurcccgS2IcLO/WMIiSj8QU9HyWtJFWZivR0SN5OBMPL9Sn7Ujxdx0oY+t3zSLo8emAf/xjoaJbROredZcwHhAzU2Ab6kk+n+b7bOIMFwJ7ZG1Lj82wsr05dt3gnhREX3onwNFqfO9m9GoQOV/RsQkipSKIsH6AEn9oDQgAPnfE8KjV18yClFEKIgGEDmLODiOgJn9AYlQ=="
+    },
+    {
+      "type": "redis",
+      "id": "redis",
+      "name": "Redis Instance",
+      "group": "Core Support Services",
+      "connectionString": "enc:rsa:v1:a9jtLv9FAvSyRyQsnfCmDJ8gdN/IVyA2HbfUoEw//E46zctwxNL8KDGLai5wCoDPj9MfSH6YoDAwUslC2wWJWMbxhtiBXaN71c+1BAob5IrVClURG20N2Dk9VQoZPf3Yp3icZ8esv7D6A6MP6ycu6tUCDAzbT06yeKoBYeg/0+YWoujjBx3uksZHakGtt/KYUwF6YtyMfRgdvXyTfVEjo+prxwdaIXus+U9P/SD4Z9+13GOLncyFWtmOs9krTPtKVx6ElWOCpy5GdXiUZterHznnFFxIdrdw3pu+5CHBjrq7SbxjZLwm7uFPkDdBhhYPZsZjz9vYRGxYxqVn8+3DmQ=="
+    },
+    {
       "id": "eventpilot",
       "group": "EventPilot",
       "name": "EventPilot homepage",
@@ -141,6 +162,7 @@
       "id": "faker",
       "name": "Faker",
       "url": "https://example.com",
+      "group": "Core Support Services",
       "outage": [
         {
           "outageId": "1ssrvwc5n",

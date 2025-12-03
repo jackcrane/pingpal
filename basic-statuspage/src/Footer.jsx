@@ -250,6 +250,9 @@ export const Footer = () => {
           >
             {refreshingConfig ? "Refreshing..." : "Refresh config"}
           </RefreshConfigButton>
+          <TextLink to="/_/sign">
+            <P>Encrypt a credential</P>
+          </TextLink>
         </FooterColumn>
         <FooterColumn>
           <ThemeSelectRow>

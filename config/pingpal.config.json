@@ -93,7 +93,7 @@
       "id": "featurebench-worker",
       "group": "FeatureBench",
       "name": "FeatureBench Worker",
-      "url": "http://worker.featurebench.com/healthz",
+      "url": "enc:rsa:v1:QeKmxQi/WVgY1IaQyPgWbKQ/vGfUhkawJnKbWmLDFkS5+Txv01AQsGR6soAp5reWxUTxVqdg22DNZjyf2XEi7kUNFyTDxZm19e9Xcb8m+clcGzBsBBL8B3CYKiEIjjhkTF94n0jh7mmR3610TTqEhAs1OPAoQgNbA4VlCsKeOmeOoa98hXuw3M+zYygfdF93iZv4Pfp9RkBuo/T05Qdh6bVtbs6VYZezpxGSAFH96NHs1MjY+Sa5hxf5xm5OIQlgnK+BgW2IIy3a2ba2vo0Q4bqjT3bIfckPDdU0AWX0M5osbzxgba0jXY43TlZ1zaMI/h2vTFT781OeWwLz7HTYgg==",
       "outage": [
         {
           "outageId": "jnzk54v2z",

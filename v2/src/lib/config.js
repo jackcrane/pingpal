@@ -4,13 +4,14 @@ import https from "https";
 import path from "path";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
+import YAML from "yaml";
 
 dotenv.config();
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const BASE_CONFIG_PATH = path.resolve(
   __dirname,
-  "../../../config/pingpal.config.json"
+  "../../../config/pingpal.config.yaml"
 );
 
 const envConfigPath = process.env.CONFIG_PATH
@@ -56,6 +57,25 @@ let initPromise = null;
 let refreshTimer = null;
 let remoteRefreshPromise = null;
 
+const parseConfigPayload = (contents, sourceLabel = "config payload") => {
+  const raw = (contents || "").trim();
+  if (!raw) return {};
+  try {
+    return JSON.parse(raw);
+  } catch (jsonErr) {
+    try {
+      return YAML.parse(raw);
+    } catch (yamlErr) {
+      const error = new Error(
+        `Unable to parse ${sourceLabel} as JSON or YAML: ${yamlErr.message}`
+      );
+      error.cause = yamlErr;
+      error.jsonError = jsonErr;
+      throw error;
+    }
+  }
+};
+
 const normalizeConfig = (raw = {}) => {
   const workspace = {
     id: raw.workspace?.id || "default",
@@ -77,7 +97,7 @@ const readConfigFromDisk = () => {
       return cachedFileContents;
     }
     const contents = fs.readFileSync(LOCAL_CONFIG_PATH, "utf-8");
-    const parsed = JSON.parse(contents);
+    const parsed = parseConfigPayload(contents, LOCAL_CONFIG_PATH);
     cachedFileContents = parsed;
     cachedMtime = stat.mtimeMs;
     return parsed;
@@ -88,7 +108,7 @@ const readConfigFromDisk = () => {
   }
 };
 
-const fetchRemoteJson = (targetUrl) =>
+const fetchRemotePayload = (targetUrl) =>
   new Promise((resolve, reject) => {
     try {
       const parsed = new URL(targetUrl);
@@ -100,7 +120,7 @@ const fetchRemoteJson = (targetUrl) =>
           path: `${parsed.pathname}${parsed.search}`,
           method: "GET",
           headers: {
-            Accept: "application/json",
+            Accept: "application/yaml, text/yaml, application/json",
           },
         },
         (res) => {
@@ -120,12 +140,12 @@ const fetchRemoteJson = (targetUrl) =>
           });
           res.on("end", () => {
             try {
-              const parsedJson = JSON.parse(data || "{}");
-              resolve(parsedJson);
+              const parsedConfig = parseConfigPayload(data || "", targetUrl);
+              resolve(parsedConfig);
             } catch (parseErr) {
               reject(
                 new Error(
-                  `Invalid JSON returned from ${targetUrl}: ${parseErr.message}`
+                  `Invalid config returned from ${targetUrl}: ${parseErr.message}`
                 )
               );
             }
@@ -149,7 +169,7 @@ const fetchAndStoreRemoteConfig = async () => {
   if (!CONFIG_URL) {
     return refreshLocalConfig();
   }
-  const raw = await fetchRemoteJson(CONFIG_URL);
+  const raw = await fetchRemotePayload(CONFIG_URL);
   cachedConfig = normalizeConfig(raw);
   return cachedConfig;
 };

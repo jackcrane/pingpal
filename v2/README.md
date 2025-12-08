@@ -1,6 +1,6 @@
 # PingPal Backend v2
 
-Self-hosted backend for the basic-statuspage frontend. Configuration lives in `config/pingpal.config.json` and live datapoints are stored in Redis.
+Self-hosted backend for the basic-statuspage frontend. Configuration now lives in `config/pingpal.config.yaml` (YAML by default, though JSON payloads are still accepted for remote/bootstrap scenarios) and live datapoints are stored in Redis.
 
 ## Running
 
@@ -11,9 +11,49 @@ Self-hosted backend for the basic-statuspage frontend. Configuration lives in `c
 
 ## Configuration
 
-- Set `CONFIG_URL` to point at a remote `pingpal.config.json` served over HTTP(S). The backend bootstraps from that URL, caches the payload in-memory, and refreshes it every minute (`CONFIG_REFRESH_INTERVAL_MS`, minimum 5000ms).
-- When `CONFIG_URL` is unset, configuration is loaded from disk (`config/pingpal.config.json` by default). Override with `CONFIG_PATH` if you want to mount a different file.
+- Set `CONFIG_URL` to point at a remote `pingpal.config.yaml` (or `.json`) served over HTTP(S). The backend bootstraps from that URL, caches the payload in-memory, and refreshes it every minute (`CONFIG_REFRESH_INTERVAL_MS`, minimum 5000ms).
+- When `CONFIG_URL` is unset, configuration is loaded from disk (`config/pingpal.config.yaml` by default). Override with `CONFIG_PATH` if you want to mount a different file.
 - The HTTP API is exposed under `/api/*` (override via `API_PREFIX`) and the compiled status page is served from the same origin. For local development you can still run the frontend separately; set `VITE_API_BASE_URL` to an absolute URL if needed.
+
+### `config/pingpal.config.yaml`
+
+The local manifest defines one workspace per backend plus shared defaults and individual service definitions. YAML keeps the file human-friendly, supports comments, and now acts as the single source of truth for `decode.js`, `test-service.js`, and the worker.
+
+Structure overview:
+
+- `workspace`: id, name, description, and optional metadata like `createdAt` or `footerLinks`.
+- `defaults`: global heartbeat settings (`intervalSeconds`, `expectedStatus`, latency limits, failure thresholds, per-service notification defaults).
+- `services`: array of service objects (HTTP by default, or set `type: postgres|mysql|redis|rabbitmq`). Services can override any default (timeouts, headers, notification policy, SQL acceptance rules, outage annotations, etc.).
+- Secrets such as `connectionString` can be stored encrypted via `decode.js`/`/_/sign`, and values remain backwards compatible with the previous JSON format.
+
+Example excerpt:
+
+```yaml
+workspace:
+  id: default
+  name: Crane Digital Platforms
+defaults:
+  intervalSeconds: 60
+  expectedStatus: 200
+  notifications:
+    notifyOnOutage: true
+    notifyOnRecovery: true
+services:
+  - id: inventory-db
+    name: Inventory DB health
+    type: postgres
+    connectionString: enc:rsa:v1:...
+    query: SELECT 1
+    maxLatencyMs: 2000
+    acceptance:
+      expectedRows: 1
+    intervalSeconds: 60
+  - id: marketing-site
+    url: https://example.com
+    maxLatencyMs: 3000
+```
+
+Remote URLs and helper scripts automatically try JSON parsing first, then YAML, so existing automation that still serves JSON continues to work.
 
 ## File-based routes
 
@@ -32,23 +72,6 @@ Routes live in `src/routes` and are discovered automatically. Examples:
 - Each check fetches the service URL with timeouts/headers/methods from config, computes status/latency health, and records hits into Redis respecting history limits.
 - Services default to HTTP checks, but you can now set `type` to `postgres` or `mysql` to run SQL queries. Database checks require a `connectionString` (URI or MySQL connection options), a `query`, and optional `acceptance` rules:
 
-```json
-{
-  "id": "inventory-db",
-  "name": "Inventory DB health",
-  "type": "postgres",
-  "connectionString": "postgres://user:pass@db.internal:5432/app",
-  "query": "SELECT 1",
-  "maxLatencyMs": 2000,
-  "acceptance": {
-    "expectedRows": 1,
-    "minRows": 1,
-    "maxRows": 1
-  },
-  "intervalSeconds": 60
-}
-```
-
 Row-based acceptance can specify `expectedRows`, `minRows`, or `maxRows`. Latency thresholds (`maxLatencyMs`) work for SQL services just like HTTP, and hits store row counts as metadata for later inspection.
 
 - Set `type` to `redis` to run a lightweight `PING` against the provided connection string (either `connectionString`, `connection`, or `url`). The worker connects with the standard Redis client, verifies auth, and fails if it cannot receive `PONG`. Latency thresholds still apply.
@@ -58,12 +81,12 @@ Row-based acceptance can specify `expectedRows`, `minRows`, or `maxRows`. Latenc
 
 - Set `SIGN_SEED` in your environment once. On boot the server derives a deterministic RSA key pair from this seed (no randomness) and stores it in `config/.signing`.
 - Visit the hidden `/_/sign` page on the backend. It fetches the workspace public key (`GET /api/signing/public-key`) and encrypts any URL/connection string entirely in the browser, returning tokens that look like `enc:rsa:v1:<base64>`.
-- Paste the encrypted value into `pingpal.config.json`. When the worker runs, it first treats the field as plaintext; if it doesn't resemble a URL/connection string it automatically attempts to decrypt it with the private key. Failures surface as hits with reason `UNDECIPHERABLE_SOURCE`.
+- Paste the encrypted value into `pingpal.config.yaml`. When the worker runs, it first treats the field as plaintext; if it doesn't resemble a URL/connection string it automatically attempts to decrypt it with the private key. Failures surface as hits with reason `UNDECIPHERABLE_SOURCE`.
 - This workflow keeps secrets out of the public config while still letting the worker access them securely.
 
 ## Data model
 
-- **Config**: `config/pingpal.config.json` defines a single workspace plus services and defaults (expected status, latency thresholds, history limits).
+- **Config**: `config/pingpal.config.yaml` defines a single workspace plus services and defaults (expected status, latency thresholds, history limits).
 - **Hits**: stored per-service in Redis sorted sets (`pingpal:hits:<serviceId>`). Hits drive uptime buckets, latency box-plots, and derived outages.
 - **Outages**: computed on-the-fly from sequential failures. Open outages return `status: "OPEN"`; resolved ones include `resolvedAt`.
 

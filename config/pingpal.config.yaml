@@ -1,0 +1,170 @@
+workspace:
+  id: default
+  name: Crane Digital Platforms
+  description: A status page for tracking services run by Crane Digital Platforms
+defaults:
+  intervalSeconds: 60
+  expectedStatus: 200
+  maxLatencyMs: 3000
+  timeoutMs: 10000
+  historyLimit: 200000
+  failureLimit: 50
+  criticalOutageSeconds: 120
+  method: GET
+  headers: {}
+  notifications:
+    notifyOnOutage: true
+    notifyOnRecovery: true
+    notifyOnDegraded: false
+    degradedThresholdMs: 2500
+services:
+  - id: portfolio
+    name: Portfolio
+    url: https://jackcrane.rocks
+  - id: fosdata
+    group: fosdata
+    name: fosdata docs
+    url: https://fosdata.pages.dev
+  - id: fosdata-package
+    group: fosdata
+    name: fosdata Bechdel package
+    url: https://fosdata.pages.dev/data/bechdel.rda
+    intervalSeconds: 600
+  - id: coolify-instance
+    name: Coolify Instance
+    url: https://admin.jackcrane.rocks/api/v1/health
+    expectedText: OK
+    group: Core Support Services
+    description: The Coolify instance is a "mini-paas" that I deploy docker images
+      against, providing orchestration and a low-cost hosting for my own
+      projects. It is a single-node instance running several images. Databases
+      and storage are hosted on different VMs or providers, and more resource
+      intensive applications run on dedicated VMs or provisioned App Platform
+      instances.
+  - type: rabbitmq
+    id: rabbit-mq
+    name: RabbitMQ Instance
+    group: Core Support Services
+    connectionString: enc:rsa:v1:RgrQHoz92a/afQui7BBm8qum2Z/A2FaTVyxqKQoe47qr/O2+GtOir6WM7X85S24sRigGyhkZl+0tQeEMkUXgdNQodUNDsg9eb5Fs1BweFs742LFiIs2QDvfucOlkZJGuU9rJtwY47tX+uurcccgS2IcLO/WMIiSj8QU9HyWtJFWZivR0SN5OBMPL9Sn7Ujxdx0oY+t3zSLo8emAf/xjoaJbROredZcwHhAzU2Ab6kk+n+b7bOIMFwJ7ZG1Lj82wsr05dt3gnhREX3onwNFqfO9m9GoQOV/RsQkipSKIsH6AEn9oDQgAPnfE8KjV18yClFEKIgGEDmLODiOgJn9AYlQ==
+    description: The RabbitMQ instance is a hosted instance of RabbitMQ, providing
+      stable queue buildup and scheduling. It allows resiliency between the
+      FeatureBench [server](/featurebench) and [worker](/featurebench-worker) as
+      well as [EventPilot](/eventpilot).
+  - type: redis
+    id: redis
+    name: Redis Instance
+    group: Core Support Services
+    description: The Redis Instance is a hosted key/value storage system that is
+      used to power *this status page* and under the hood by
+      [RabbitMQ](/rabbit-mq) instance which is used by [EventPilot](/eventpilot)
+      and FeatureBench (both the [server](/featurebench) and the
+      [worker](/featurebench-worker)). It shares a VM with my shared postgres,
+      mysql, and [RabbitMQ](/rabbit-mq) instances.
+    connectionString: enc:rsa:v1:a9jtLv9FAvSyRyQsnfCmDJ8gdN/IVyA2HbfUoEw//E46zctwxNL8KDGLai5wCoDPj9MfSH6YoDAwUslC2wWJWMbxhtiBXaN71c+1BAob5IrVClURG20N2Dk9VQoZPf3Yp3icZ8esv7D6A6MP6ycu6tUCDAzbT06yeKoBYeg/0+YWoujjBx3uksZHakGtt/KYUwF6YtyMfRgdvXyTfVEjo+prxwdaIXus+U9P/SD4Z9+13GOLncyFWtmOs9krTPtKVx6ElWOCpy5GdXiUZterHznnFFxIdrdw3pu+5CHBjrq7SbxjZLwm7uFPkDdBhhYPZsZjz9vYRGxYxqVn8+3DmQ==
+  - id: eventpilot
+    group: EventPilot
+    name: EventPilot homepage
+    url: https://geteventpilot.com
+  - id: eventpilot-docs
+    group: EventPilot
+    name: EventPilot docs
+    url: https://docs.geteventpilot.com
+  - id: og-image
+    group: og-image
+    name: OG Image Generator (landing page)
+    url: https://og-image.xyz
+  - id: og-image-image
+    group: og-image
+    name: OG Image Generator (image endpoint)
+    url: https://og-image.xyz/og/statuspage/subtitle/og-image.xyz/https/menlo/candybar/black/data.png
+  - id: paddlefest-volunteer-registration
+    group: Paddlefest
+    name: Paddlefest Volunteer Registration
+    url: https://volunteer.ohioriverpaddlefest.org
+  - id: paddlefest-volunteer-admin
+    group: Paddlefest
+    name: Paddlefest Volunteer Admin
+    url: https://paddlefest-admin-simple.pages.dev/
+  - id: paddlefest-volunteer-admin-api
+    group: Paddlefest
+    name: Paddlefest Volunteer API
+    url: https://volunteer.jackcrane.rocks/admin/volunteers
+    outage:
+      - outageId: bgc9yyka5
+        title: SSL Error
+        comment: The Paddlefest Volunteer API experienced an SSL error. My orchestrator
+          attempted to provision a SSL certificate for a wildcard domain, but
+          the wildcard domain was not fully configured. The SSL certificate was
+          provisioned, but was not valid. The heartbeat expects HTTPS with a
+          valid SSL certificate, so the heartbeats failed.
+  - id: rmp-x-courses
+    name: Rate my Professors x Courses@SLU
+    url: https://rmp-conn.jackcrane.workers.dev/api?name=D.%20Letscher
+    expectedText: VGVhY2hlci0zMjUwMjQ=
+    intervalSeconds: 180
+    description: This is a simple API that wraps a DOM parser to extract instructor
+      ratings from Rate My Professors. It is consumed by a chrome extension that
+      plugs into Courses@SLU and displays professor ratings in the course
+      listings. The API is a Cloudflare Worker with no external dependencies.
+      The only potential source of an outage is a Rate My Professors outage or
+      markup change, or a Cloudflare outage.
+  - id: featurebench-worker
+    group: FeatureBench
+    name: FeatureBench Worker
+    description: >-
+      This is the autograder worker for FeatureBench. It is a box that runs a
+      Solidworks instance with a thin API layer providing HTTP and queue
+      consumption capabilities. Due to the architecture of this worker, frequent
+      short outages are expected, but resilience is built-in and all requests
+      sent while the worker is down are queued and retried at a best-effort
+      basis. The FeatureBench worker is designed around eventual consistency,
+      not realtime performance.
+
+       As long as the [queue](/rabbit-mq) is online, requests through the FeatureBench website or API will be eventually processed and rectified in the db. If the queue is offline, the API will attempt to use HTTP to run grader invocations, but will operate with worstened performance and may not be able to satisfy all requests. In the event of significant outage, there should be an automatic provisioning of & failover to a backup.
+    url: enc:rsa:v1:QeKmxQi/WVgY1IaQyPgWbKQ/vGfUhkawJnKbWmLDFkS5+Txv01AQsGR6soAp5reWxUTxVqdg22DNZjyf2XEi7kUNFyTDxZm19e9Xcb8m+clcGzBsBBL8B3CYKiEIjjhkTF94n0jh7mmR3610TTqEhAs1OPAoQgNbA4VlCsKeOmeOoa98hXuw3M+zYygfdF93iZv4Pfp9RkBuo/T05Qdh6bVtbs6VYZezpxGSAFH96NHs1MjY+Sa5hxf5xm5OIQlgnK+BgW2IIy3a2ba2vo0Q4bqjT3bIfckPDdU0AWX0M5osbzxgba0jXY43TlZ1zaMI/h2vTFT781OeWwLz7HTYgg==
+    outage:
+      - outageId: jnzk54v2z
+        title: Forced error state
+        comment: We forced an error state on the FeatureBench worker by purposefully
+          expecting response text that would not be present. This was a test
+          outage and the worker did not go offline.
+        author: Jack Crane
+      - outageId: 3f1oz1m6z
+        comment: "*Requestor outage* the statuspage requestor went offline, not the
+          service."
+        author: Jack Crane
+        title: Requestor outage
+  - id: featurebench
+    group: FeatureBench
+    name: FeatureBench
+    url: https://featurebench.com
+  - id: featurebench-db
+    group: FeatureBench
+    name: FeatureBench DB
+    type: postgres
+    connectionString: enc:rsa:v1:rTpQQrbMdsxnfZKEiVUCrVbJU6Dar7UeTqGaqDaTmSGDGSPh+fRMoH4WqP0ZyNmU4sPU1c7ZQpfEDilkkK2k4mVImaSwEZO1Z12EA1MxNmZzGVGA/D/Lb0B6dDy7oF0anFZ+3hCgPKMJmXpgtSdVyndGqBP8RPB713hA5AEDUvW6SrsjR2oI+fnGW1CJ4lONGMVvk+sd8h3dWTGoaEcm89UAQWtnKF/hO31fSgL0VDLewCKSjmcV3Y9AZMyCeZhqKopWg1tsPcwe3fM05pNlw1ji8fl02qcd6gvr2sqM8pCqZfIs2T/1qsQ8LerKY6wx63I0ScI74R9fk4IgoW/YBQ==
+    query: SELECT 1
+    maxLatencyMs: 2000
+    acceptance:
+      expectedRows: 1
+      minRows: 1
+      maxRows: 1
+  - id: faker
+    name: Faker
+    url: https://example.com
+    group: Core Support Services
+    outage:
+      - outageId: 1ssrvwc5n
+        comment: "*Requestor outage* the statuspage requestor went offline, not the
+          service."
+        author: Jack Crane
+        title: Requestor outage
+      - outageId: 29x5dov8e
+        comment: "Purposeful outage: This service was intentionally put into a failing
+          state to test email notifications."
+        author: Jack Crane
+        title: Purposeful outage
+  - id: orw-api
+    name: ORW API
+    url: https://orw-api.jackcrane.rocks/weather
+    expectedText: weather

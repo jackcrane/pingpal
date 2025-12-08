@@ -292,7 +292,7 @@ export default function SigningPage({ workspaceId }) {
             <li>Paste your plaintext URL or connection string.</li>
             <li>Encrypt it with the workspace public key.</li>
             <li>
-              Copy the encrypted token into <code>pingpal.config.json</code>.
+              Copy the encrypted token into <code>pingpal.config.yaml</code>.
             </li>
           </Instructions>
           <Spacer height="10px" />

@@ -4,10 +4,16 @@
 const fs = require("fs");
 const path = require("path");
 const { pathToFileURL } = require("url");
+const { createRequire } = require("module");
+
+const requireFromBackend = createRequire(
+  path.resolve(__dirname, "v2/package.json")
+);
+const YAML = requireFromBackend("yaml");
 
 const DEFAULT_CONFIG_PATH = path.resolve(
   __dirname,
-  "config/pingpal.config.json"
+  "config/pingpal.config.yaml"
 );
 const DEFAULT_ENV_PATH = path.resolve(__dirname, "v2/.env");
 const SIGNING_MODULE_URL = pathToFileURL(
@@ -73,14 +79,27 @@ const loadEnvFile = (envPath = DEFAULT_ENV_PATH) => {
     });
 };
 
+const parseConfigString = (raw, location) => {
+  try {
+    return JSON.parse(raw);
+  } catch (jsonErr) {
+    try {
+      return YAML.parse(raw);
+    } catch (yamlErr) {
+      const error = new Error(
+        `Config at ${location} is not valid JSON or YAML: ${yamlErr.message}`
+      );
+      error.cause = yamlErr;
+      error.jsonError = jsonErr;
+      throw error;
+    }
+  }
+};
+
 const loadConfig = (configPath) => {
   const resolved = path.resolve(configPath);
   const raw = fs.readFileSync(resolved, "utf8");
-  try {
-    return JSON.parse(raw);
-  } catch (err) {
-    throw new Error(`Config at ${resolved} is not valid JSON: ${err.message}`);
-  }
+  return parseConfigString(raw, resolved);
 };
 
 const loadModules = async (envPath = DEFAULT_ENV_PATH) => {

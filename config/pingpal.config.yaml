@@ -35,7 +35,8 @@ services:
     url: https://admin.jackcrane.rocks/api/v1/health
     expectedText: OK
     group: Core Support Services
-    description: The Coolify instance is a "mini-paas" that I deploy docker images
+    description:
+      The Coolify instance is a "mini-paas" that I deploy docker images
       against, providing orchestration and a low-cost hosting for my own
       projects. It is a single-node instance running several images. Databases
       and storage are hosted on different VMs or providers, and more resource
@@ -46,7 +47,8 @@ services:
     name: RabbitMQ Instance
     group: Core Support Services
     connectionString: enc:rsa:v1:RgrQHoz92a/afQui7BBm8qum2Z/A2FaTVyxqKQoe47qr/O2+GtOir6WM7X85S24sRigGyhkZl+0tQeEMkUXgdNQodUNDsg9eb5Fs1BweFs742LFiIs2QDvfucOlkZJGuU9rJtwY47tX+uurcccgS2IcLO/WMIiSj8QU9HyWtJFWZivR0SN5OBMPL9Sn7Ujxdx0oY+t3zSLo8emAf/xjoaJbROredZcwHhAzU2Ab6kk+n+b7bOIMFwJ7ZG1Lj82wsr05dt3gnhREX3onwNFqfO9m9GoQOV/RsQkipSKIsH6AEn9oDQgAPnfE8KjV18yClFEKIgGEDmLODiOgJn9AYlQ==
-    description: The RabbitMQ instance is a hosted instance of RabbitMQ, providing
+    description:
+      The RabbitMQ instance is a hosted instance of RabbitMQ, providing
       stable queue buildup and scheduling. It allows resiliency between the
       FeatureBench [server](/featurebench) and [worker](/featurebench-worker) as
       well as [EventPilot](/eventpilot).
@@ -60,7 +62,7 @@ services:
       and FeatureBench (both the [server](/featurebench) and the
       [worker](/featurebench-worker)). It shares a VM with my shared postgres,
       mysql, and [RabbitMQ](/rabbit-mq) instances.
-    connectionString: enc:rsa:v1:a9jtLv9FAvSyRyQsnfCmDJ8gdN/IVyA2HbfUoEw//E46zctwxNL8KDGLai5wCoDPj9MfSH6YoDAwUslC2wWJWMbxhtiBXaN71c+1BAob5IrVClURG20N2Dk9VQoZPf3Yp3icZ8esv7D6A6MP6ycu6tUCDAzbT06yeKoBYeg/0+YWoujjBx3uksZHakGtt/KYUwF6YtyMfRgdvXyTfVEjo+prxwdaIXus+U9P/SD4Z9+13GOLncyFWtmOs9krTPtKVx6ElWOCpy5GdXiUZterHznnFFxIdrdw3pu+5CHBjrq7SbxjZLwm7uFPkDdBhhYPZsZjz9vYRGxYxqVn8+3DmQ==
+    connectionString: enc:rsa:v1:FIUXVT8rv36Nw8jhEUNp9XhBqyh+ffreEgUgfVSkVPSVAglMq9NSt3V6R7/tqd3UgPdhsOGVxvW/Zc73HR5VHu7oWYx2DclURyvp/7j88bT/pNV5UYwQebelpGTwE2yes9GezTd2ihPJUBxScqtwu0ua2Sy6W2NxIzC1LfuEjhG+Vq4f/s5hgDPXgsl55xRtEbOFDv96pdD1nmDNAyXCkoHUDje9rZCzcWZtVRZfN3SlhDg9529pF6d8BJR30CQBV7d/rxWxaYnnvK6uG+kry8bWxT7xJHGLeBpkstV6TJef+QrMFxVzKoblJCAgxByMNKkHQg+ZZ25wN8yD8tcoyw==
   - id: eventpilot
     group: EventPilot
     name: EventPilot homepage
@@ -92,7 +94,8 @@ services:
     outage:
       - outageId: bgc9yyka5
         title: SSL Error
-        comment: The Paddlefest Volunteer API experienced an SSL error. My orchestrator
+        comment:
+          The Paddlefest Volunteer API experienced an SSL error. My orchestrator
           attempted to provision a SSL certificate for a wildcard domain, but
           the wildcard domain was not fully configured. The SSL certificate was
           provisioned, but was not valid. The heartbeat expects HTTPS with a
@@ -102,7 +105,8 @@ services:
     url: https://rmp-conn.jackcrane.workers.dev/api?name=D.%20Letscher
     expectedText: VGVhY2hlci0zMjUwMjQ=
     intervalSeconds: 180
-    description: This is a simple API that wraps a DOM parser to extract instructor
+    description:
+      This is a simple API that wraps a DOM parser to extract instructor
       ratings from Rate My Professors. It is consumed by a chrome extension that
       plugs into Courses@SLU and displays professor ratings in the course
       listings. The API is a Cloudflare Worker with no external dependencies.
@@ -125,12 +129,14 @@ services:
     outage:
       - outageId: jnzk54v2z
         title: Forced error state
-        comment: We forced an error state on the FeatureBench worker by purposefully
+        comment:
+          We forced an error state on the FeatureBench worker by purposefully
           expecting response text that would not be present. This was a test
           outage and the worker did not go offline.
         author: Jack Crane
       - outageId: 3f1oz1m6z
-        comment: "*Requestor outage* the statuspage requestor went offline, not the
+        comment:
+          "*Requestor outage* the statuspage requestor went offline, not the
           service."
         author: Jack Crane
         title: Requestor outage
@@ -155,12 +161,14 @@ services:
     group: Core Support Services
     outage:
       - outageId: 1ssrvwc5n
-        comment: "*Requestor outage* the statuspage requestor went offline, not the
+        comment:
+          "*Requestor outage* the statuspage requestor went offline, not the
           service."
         author: Jack Crane
         title: Requestor outage
       - outageId: 29x5dov8e
-        comment: "Purposeful outage: This service was intentionally put into a failing
+        comment:
+          "Purposeful outage: This service was intentionally put into a failing
           state to test email notifications."
         author: Jack Crane
         title: Purposeful outage

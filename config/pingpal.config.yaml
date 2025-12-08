@@ -63,6 +63,10 @@ services:
       [worker](/featurebench-worker)). It shares a VM with my shared postgres,
       mysql, and [RabbitMQ](/rabbit-mq) instances.
     connectionString: enc:rsa:v1:FIUXVT8rv36Nw8jhEUNp9XhBqyh+ffreEgUgfVSkVPSVAglMq9NSt3V6R7/tqd3UgPdhsOGVxvW/Zc73HR5VHu7oWYx2DclURyvp/7j88bT/pNV5UYwQebelpGTwE2yes9GezTd2ihPJUBxScqtwu0ua2Sy6W2NxIzC1LfuEjhG+Vq4f/s5hgDPXgsl55xRtEbOFDv96pdD1nmDNAyXCkoHUDje9rZCzcWZtVRZfN3SlhDg9529pF6d8BJR30CQBV7d/rxWxaYnnvK6uG+kry8bWxT7xJHGLeBpkstV6TJef+QrMFxVzKoblJCAgxByMNKkHQg+ZZ25wN8yD8tcoyw==
+    outage:
+      - outageId: pdpraawjc
+        title: Credential error
+        comment: I rolled the db credentials and status monitor was not updated. DB never went down, but was rejecting heartbeats for a few minutes.
   - id: eventpilot
     group: EventPilot
     name: EventPilot homepage

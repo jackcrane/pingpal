@@ -62,7 +62,7 @@ services:
       and FeatureBench (both the [server](/featurebench) and the
       [worker](/featurebench-worker)). It shares a VM with my shared postgres,
       mysql, and [RabbitMQ](/rabbit-mq) instances.
-    connectionString: enc:rsa:v1:FIUXVT8rv36Nw8jhEUNp9XhBqyh+ffreEgUgfVSkVPSVAglMq9NSt3V6R7/tqd3UgPdhsOGVxvW/Zc73HR5VHu7oWYx2DclURyvp/7j88bT/pNV5UYwQebelpGTwE2yes9GezTd2ihPJUBxScqtwu0ua2Sy6W2NxIzC1LfuEjhG+Vq4f/s5hgDPXgsl55xRtEbOFDv96pdD1nmDNAyXCkoHUDje9rZCzcWZtVRZfN3SlhDg9529pF6d8BJR30CQBV7d/rxWxaYnnvK6uG+kry8bWxT7xJHGLeBpkstV6TJef+QrMFxVzKoblJCAgxByMNKkHQg+ZZ25wN8yD8tcoyw==
+    connectionString: enc:rsa:v1:VfD1kdz62bHiqvCIQTZR00YMIXa350w5A/UOTQoOgMMAJRKmI1pjHHZXX3cKdbecaMN8RveZrXrylJ9DDbw7Um+5I/KGuoKUyEu2b5Z//i0hbJZ5AwnyUHmJKg1bujOsjkYcFzNMXz2u9Sy3Mp5jkbOUANkgcJ9kLCgQlMxwKt928DXUS1BIfSsMWREKmF9K/375X/7abCUXEXJNHntNCu3Wwcp5RI/v4ngWZsCpmTDaxZiUB6ztnMLB4HtrWR1n8aUdwMvVsdhheajRkgB+iFDAcNQv5Cf66lJCscL/6Svuaql+n1/aq3gQs3u81Kl+nmMRqxOaSaWg/dHb1YmwFA==
     outage:
       - outageId: pdpraawjc
         title: Credential error

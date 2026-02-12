@@ -159,6 +159,10 @@ services:
       expectedRows: 1
       minRows: 1
       maxRows: 1
+  - id: coredesk
+    group: CoreDesk
+    url: https://open-project-5skum.ondigitalocean.app/api/auth/me
+    expectedStatus: 401
   - id: faker
     name: Faker
     url: https://example.com

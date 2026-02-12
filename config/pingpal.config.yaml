@@ -170,6 +170,11 @@ services:
     type: postgres
     connectionString: enc:rsa:v1:AKJBhIdaDALbuYEKrGk9yw75Dqvfb8iBeJx9mojB+tdcvVKmQ5IOnSfutKqMxioTqoeD7uZxdEREpADW6meYwTDX4dbO8raPYnwJ9yFru07b1p3eCpnNpecHBdEYyzCHFqz+0adgkat3GJtOd2PBM8SlvT9+h3hTeK3JHSEa8wAvhQVL1Hb8fhbineHtiBJHXJdAPFH6MKpW0mSvqauI6H4BOKypg9D4y76oQfWO3tU4dJEBf0uWWn/faeucUMG89amgpYFnECwb/rxT8Lb4NIFYuNZtglYXmylfLNO+I8+DgFUwOAOivZtz/nT7XlHGaIMDa3FGhIdIEnXGxW4iLg==
     query: SELECT 1
+    maxLatencyMs: 2000
+    acceptance:
+      expectedRows: 1
+      minRows: 1
+      maxRows: 1
   - id: faker
     name: Faker
     url: https://example.com

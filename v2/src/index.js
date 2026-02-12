@@ -7,6 +7,7 @@ import dotenv from "dotenv";
 import { loadRoutes, Router } from "./lib/router.js";
 import { initConfig, loadConfig } from "./lib/config.js";
 import { getRedisClient } from "./lib/redis.js";
+import { sendOperationalAlert } from "./lib/notifications.js";
 import { validateEnv } from "./lib/env.js";
 import { initSigning } from "./lib/signing.js";
 import { startWorker } from "./worker.js";
@@ -67,6 +68,41 @@ const streamFile = (filePath, res) =>
     stream.on("end", resolve);
     stream.pipe(res);
   });
+
+const REDIS_ALERT_SUBJECT = "PingPal startup: Redis connection failure";
+const getRedisUrlLabel = () =>
+  process.env.REDIS_URL && process.env.REDIS_URL.length > 0
+    ? process.env.REDIS_URL
+    : "not provided";
+
+const buildRedisAlertPayload = (err) => {
+  const urlLabel = getRedisUrlLabel();
+  const lines = [
+    "PingPal backend failed to connect to Redis during startup.",
+    `Redis URL: ${urlLabel}`,
+    `Error: ${err?.message || "unknown error"}`,
+    err?.stack ? `Stack:\n${err.stack}` : null,
+    `Timestamp: ${new Date().toISOString()}`,
+  ].filter(Boolean);
+  return {
+    subject: REDIS_ALERT_SUBJECT,
+    text: lines.join("\n\n"),
+    metadata: {
+      step: "redis-connection",
+      url: urlLabel,
+      code: err?.code || null,
+    },
+  };
+};
+
+const ensureRedisAvailability = async () => {
+  try {
+    await getRedisClient();
+  } catch (err) {
+    console.error("[startup] Redis connection failed:", err?.message || err);
+    await sendOperationalAlert(buildRedisAlertPayload(err));
+  }
+};
 
 const serveStatic = async (req, res, requestUrl) => {
   if (!["GET", "HEAD"].includes(req.method || "")) return false;
@@ -151,7 +187,7 @@ const routes = await loadRoutes({
 });
 
 // Ensure Redis connectivity at boot
-await getRedisClient();
+await ensureRedisAvailability();
 
 const router = new Router({
   routes,

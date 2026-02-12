@@ -461,3 +461,53 @@ export const handleNotifications = async ({
     await persistState(client, key, state);
   }
 };
+
+const SYSTEM_WORKSPACE = { id: "system", name: "PingPal System" };
+const SYSTEM_SERVICE = { id: "system", name: "PingPal System" };
+const SYSTEM_EVENT = "SYSTEM_ALERT";
+
+export const sendOperationalAlert = async ({
+  subject,
+  text,
+  metadata,
+  eventType = SYSTEM_EVENT,
+}) => {
+  if (!subject || !text) return null;
+  if (!notificationsConfigured()) {
+    console.warn(
+      `[notify] Skipping operational alert "${subject}": SMTP not configured`
+    );
+    return null;
+  }
+
+  const headers =
+    metadata && Object.keys(metadata).length > 0
+      ? { "X-PingPal-Metadata": JSON.stringify(metadata) }
+      : undefined;
+
+  const payload = {
+    subject,
+    text,
+    messageId: buildMessageId(SYSTEM_SERVICE.id, eventType),
+    headers,
+  };
+
+  try {
+    const messageId = await sendEmail(
+      SYSTEM_WORKSPACE,
+      SYSTEM_SERVICE,
+      eventType,
+      payload
+    );
+    console.log(
+      `[notify] Operational alert sent for "${subject}" (${messageId || "no id"})`
+    );
+    return messageId;
+  } catch (err) {
+    console.error(
+      `[notify] Failed to send operational alert "${subject}":`,
+      err.message
+    );
+    return null;
+  }
+};

@@ -160,9 +160,15 @@ services:
       minRows: 1
       maxRows: 1
   - id: coredesk
+    name: CoreDesk API
     group: CoreDesk
     url: https://open-project-5skum.ondigitalocean.app/api/auth/me
     expectedStatus: 401
+  - id: coredesk-db
+    name: CoreDesk Database
+    group: CoreDesk
+    type: postgres
+    connectionString: enc:rsa:v1:AKJBhIdaDALbuYEKrGk9yw75Dqvfb8iBeJx9mojB+tdcvVKmQ5IOnSfutKqMxioTqoeD7uZxdEREpADW6meYwTDX4dbO8raPYnwJ9yFru07b1p3eCpnNpecHBdEYyzCHFqz+0adgkat3GJtOd2PBM8SlvT9+h3hTeK3JHSEa8wAvhQVL1Hb8fhbineHtiBJHXJdAPFH6MKpW0mSvqauI6H4BOKypg9D4y76oQfWO3tU4dJEBf0uWWn/faeucUMG89amgpYFnECwb/rxT8Lb4NIFYuNZtglYXmylfLNO+I8+DgFUwOAOivZtz/nT7XlHGaIMDa3FGhIdIEnXGxW4iLg==
   - id: faker
     name: Faker
     url: https://example.com
@@ -187,7 +193,6 @@ services:
     intervalSeconds: 600
     outage:
       - outageId: 4kswl6etg
-        comment:
-          "*Requestor outage* the statuspage requestor queued too many heartbeat pings against the ORW weather API, resulting in getting rate limited by an upstream provider."
+        comment: "*Requestor outage* the statuspage requestor queued too many heartbeat pings against the ORW weather API, resulting in getting rate limited by an upstream provider."
         author: Jack Crane
         title: Requestor outage

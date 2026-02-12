@@ -180,3 +180,4 @@ services:
     name: ORW API
     url: https://orw-api.jackcrane.rocks/weather
     expectedText: weather
+    intervalSeconds: 600
